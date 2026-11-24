@@ -1,0 +1,1546 @@
+{
+  "requirements": [
+    {
+      "id": "R001",
+      "title": "账户转账",
+      "status": "已确认",
+      "line": "账户转账",
+      "description": "用户发起一笔转账：重复提交的请求不再处理；参数不合法、超过单笔限额、余额不足时拒绝并说明原因；大额转账先交人工\n复核；其余的冻结资金后执行转账，转账出错时解冻资金并通知用户，成功后逐条记账并通知用户。",
+      "flow": "步骤：查询请求状态\n判断：重复提交的请求？\n  是：\n    结局（跳过）：重复请求，不再处理\n步骤：参数校验\n判断：参数不合法？\n  是：\n    步骤：拒绝并说明原因\n    结局（失败）：参数不合法，已拒绝\n判断：超过单笔限额？\n  是：\n    步骤：拒绝并说明原因\n    结局（失败）：超过单笔限额，已拒绝\n步骤：查询可用余额\n判断：余额不足？\n  是：\n    步骤：拒绝并说明原因\n    结局（失败）：余额不足，已拒绝\n判断：需要人工复核？\n  是：\n    步骤：提交人工复核\n    结局（跳过）：已转人工复核\n步骤：冻结资金\n步骤：执行转账\n  失败时：\n    步骤：解冻资金\n    步骤：发通知\n    结局（失败）：转账失败，资金已解冻\n步骤：生成记账分录\n步骤：记一笔账\n步骤：发通知\n结局（成功）：转账完成",
+      "file": ".pystepmap/requirements/R001-账户转账.md",
+      "errors": [],
+      "design_line": ".pystepmap/requirements/R001-账户转账.md::R001",
+      "comparison": {
+        "line_sid": "line:transfer_workflow.py::TransferWorkflow.run",
+        "line_title": "账户转账",
+        "matches": true,
+        "notes": [],
+        "differences": [],
+        "outcomes": [
+          {
+            "title": "重复请求，不再处理",
+            "kind": "skipped",
+            "node": "end:17497ec9",
+            "covered": "unknown"
+          },
+          {
+            "title": "参数不合法，已拒绝",
+            "kind": "failed",
+            "node": "end:27cbb474",
+            "covered": "unknown"
+          },
+          {
+            "title": "超过单笔限额，已拒绝",
+            "kind": "failed",
+            "node": "end:47aa0030",
+            "covered": "unknown"
+          },
+          {
+            "title": "余额不足，已拒绝",
+            "kind": "failed",
+            "node": "end:7dec8b1f",
+            "covered": "unknown"
+          },
+          {
+            "title": "已转人工复核",
+            "kind": "skipped",
+            "node": "end:b72411ba",
+            "covered": "unknown"
+          },
+          {
+            "title": "转账失败，资金已解冻",
+            "kind": "failed",
+            "node": "end:225fbd0e",
+            "covered": "unknown"
+          },
+          {
+            "title": "转账完成",
+            "kind": "ok",
+            "node": "end:5bdd8f98",
+            "covered": "unknown"
+          }
+        ]
+      },
+      "reachable_status": "已实现"
+    },
+    {
+      "id": "R002",
+      "title": "转账加风控",
+      "status": "已实现",
+      "line": "账户转账",
+      "description": "转账前先做风控打分。\n\n用户发起一笔转账：重复提交的请求不再处理；参数不合法、超过单笔限额、余额不足时拒绝并说明原因；大额转账先交人工\n复核；其余的冻结资金后执行转账，转账出错时解冻资金并通知用户，成功后逐条记账并通知用户。",
+      "flow": "步骤：查询请求状态\n判断：重复提交的请求？\n  是：\n    结局（跳过）：重复请求，不再处理\n步骤：参数校验\n判断：参数不合法？\n  是：\n    步骤：拒绝并说明原因\n    结局（失败）：参数不合法，已拒绝\n判断：超过单笔限额？\n  是：\n    步骤：拒绝并说明原因\n    结局（失败）：超过单笔限额，已拒绝\n判断：余额不足？\n  是：\n    步骤：拒绝并说明原因\n    结局（失败）：余额不足，已拒绝\n判断：需要人工复核？\n  是：\n    步骤：风控打分\n    步骤：提交人工复核\n    结局（失败）：已转人工复核\n步骤：冻结资金\n步骤：执行转账\n  失败时：\n    步骤：解冻资金\n    步骤：发通知\n    结局（失败）：转账失败，资金已解冻\n步骤：记一笔账\n步骤：生成记账分录\n步骤：发通知\n结局（成功）：转账完成",
+      "file": ".pystepmap/requirements/R002-转账加风控.md",
+      "errors": [],
+      "design_line": ".pystepmap/requirements/R002-转账加风控.md::R002",
+      "comparison": {
+        "line_sid": "line:transfer_workflow.py::TransferWorkflow.run",
+        "line_title": "账户转账",
+        "matches": false,
+        "notes": [],
+        "differences": [
+          {
+            "kind": "missing",
+            "text": "设计里的步骤「风控打分」在实现里没有",
+            "type": "step",
+            "title": "风控打分",
+            "node": "",
+            "design_nodes": [
+              "step:L20"
+            ]
+          },
+          {
+            "kind": "kind",
+            "text": "结局「已转人工复核」设计的是失败，实现的是跳过",
+            "type": "end",
+            "title": "已转人工复核",
+            "node": "end:b72411ba",
+            "design_nodes": [
+              "end:L22"
+            ]
+          },
+          {
+            "kind": "extra",
+            "text": "实现里的步骤「查询可用余额」设计里没有",
+            "type": "step",
+            "title": "查询可用余额",
+            "node": "step:be6595ab",
+            "design_nodes": []
+          },
+          {
+            "kind": "order",
+            "text": "走向不一致：设计的这条路在实现里走不通——查询请求状态 → 重复提交的请求？（否） → 参数校验 → 参数不合法？（否） → 超过单笔限额？（否） → 余额不足？（否） → 需要人工复核？（否） → 冻结资金 → 执行转账 → 记一笔账 → 生成记账分录 → 发通知 → 结局「转账完成」",
+            "type": "end",
+            "title": "转账完成",
+            "node": "",
+            "design_nodes": [
+              "end:L32"
+            ]
+          }
+        ],
+        "outcomes": [
+          {
+            "title": "重复请求，不再处理",
+            "kind": "skipped",
+            "node": "end:17497ec9",
+            "covered": "unknown"
+          },
+          {
+            "title": "参数不合法，已拒绝",
+            "kind": "failed",
+            "node": "end:27cbb474",
+            "covered": "unknown"
+          },
+          {
+            "title": "超过单笔限额，已拒绝",
+            "kind": "failed",
+            "node": "end:47aa0030",
+            "covered": "unknown"
+          },
+          {
+            "title": "余额不足，已拒绝",
+            "kind": "failed",
+            "node": "end:7dec8b1f",
+            "covered": "unknown"
+          },
+          {
+            "title": "已转人工复核",
+            "kind": "failed",
+            "node": "end:b72411ba",
+            "covered": "unknown"
+          },
+          {
+            "title": "转账失败，资金已解冻",
+            "kind": "failed",
+            "node": "end:225fbd0e",
+            "covered": "unknown"
+          },
+          {
+            "title": "转账完成",
+            "kind": "ok",
+            "node": "end:5bdd8f98",
+            "covered": "unknown"
+          }
+        ]
+      },
+      "reachable_status": "已确认"
+    },
+    {
+      "id": "R003",
+      "title": "坏的需求",
+      "status": "草稿",
+      "line": "账户转账",
+      "description": "流程写错了。",
+      "flow": "步骤：查询请求状态\n乱写一行\n  是：",
+      "file": ".pystepmap/requirements/R003-坏的需求.md",
+      "errors": [
+        "设计的流程 第 2 行：读不懂 '乱写一行'——每行以 步骤： / 判断： / 循环： / 结局（成功|跳过|失败）： 开头",
+        "设计的流程 第 3 行：缩进多了（上一行不是判断的分支、也不是循环）"
+      ],
+      "design_line": null,
+      "comparison": null,
+      "reachable_status": "草稿"
+    },
+    {
+      "id": "R004",
+      "title": "退款",
+      "status": "草稿",
+      "line": "退款",
+      "description": "用户申请退款，超过 30 天的不退。",
+      "flow": "步骤：查询订单\n判断：超过 30 天？\n  是：\n    结局（失败）：超过退款期限\n步骤：原路退回\n结局（成功）：退款完成",
+      "file": ".pystepmap/requirements/R004-退款.md",
+      "errors": [],
+      "design_line": ".pystepmap/requirements/R004-退款.md::R004",
+      "comparison": {
+        "line_sid": "",
+        "line_title": "",
+        "matches": false,
+        "notes": [],
+        "differences": [
+          {
+            "kind": "no_line",
+            "text": "图上找不到功能线「退款」（还没有实现，或者名字对不上、对上不止一条）",
+            "type": "",
+            "title": "",
+            "node": "",
+            "design_nodes": []
+          },
+          {
+            "kind": "missing",
+            "text": "步骤「查询订单」还没有实现",
+            "type": "step",
+            "title": "查询订单",
+            "node": "",
+            "design_nodes": [
+              "step:L1"
+            ]
+          },
+          {
+            "kind": "missing",
+            "text": "判断「超过 30 天？」还没有实现",
+            "type": "cond",
+            "title": "超过 30 天？",
+            "node": "",
+            "design_nodes": [
+              "cond:L2"
+            ]
+          },
+          {
+            "kind": "missing",
+            "text": "结局「超过退款期限」还没有实现",
+            "type": "end",
+            "title": "超过退款期限",
+            "node": "",
+            "design_nodes": [
+              "end:L4"
+            ]
+          },
+          {
+            "kind": "missing",
+            "text": "步骤「原路退回」还没有实现",
+            "type": "step",
+            "title": "原路退回",
+            "node": "",
+            "design_nodes": [
+              "step:L5"
+            ]
+          },
+          {
+            "kind": "missing",
+            "text": "结局「退款完成」还没有实现",
+            "type": "end",
+            "title": "退款完成",
+            "node": "",
+            "design_nodes": [
+              "end:L6"
+            ]
+          }
+        ],
+        "outcomes": [
+          {
+            "title": "超过退款期限",
+            "kind": "failed",
+            "node": "",
+            "covered": "missing"
+          },
+          {
+            "title": "退款完成",
+            "kind": "ok",
+            "node": "",
+            "covered": "missing"
+          }
+        ]
+      },
+      "reachable_status": "草稿"
+    }
+  ],
+  "graph": {
+    "schema_version": 1,
+    "root": "",
+    "functions": {
+      ".pystepmap/requirements/R001-账户转账.md::R001": {
+        "key": ".pystepmap/requirements/R001-账户转账.md::R001",
+        "file": ".pystepmap/requirements/R001-账户转账.md",
+        "qualname": "R001",
+        "line": 0,
+        "end_line": 0,
+        "kind": "workflow",
+        "title": "账户转账",
+        "is_async": false,
+        "sid": ".pystepmap/requirements/R001-账户转账.md::R001",
+        "marked": true,
+        "group": "需求",
+        "route": null,
+        "retries": false,
+        "parent": null,
+        "nodes": [
+          {
+            "id": "n1",
+            "type": "start",
+            "title": "账户转账",
+            "sid": "start",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n2",
+            "type": "step",
+            "title": "查询请求状态",
+            "sid": "step:L1",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n3",
+            "type": "cond",
+            "title": "重复提交的请求？",
+            "sid": "cond:L2",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n4",
+            "type": "end",
+            "title": "重复请求，不再处理",
+            "sid": "end:L4",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "skipped",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n5",
+            "type": "step",
+            "title": "参数校验",
+            "sid": "step:L5",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n6",
+            "type": "cond",
+            "title": "参数不合法？",
+            "sid": "cond:L6",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n7",
+            "type": "step",
+            "title": "拒绝并说明原因",
+            "sid": "step:L8",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n8",
+            "type": "end",
+            "title": "参数不合法，已拒绝",
+            "sid": "end:L9",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n9",
+            "type": "cond",
+            "title": "超过单笔限额？",
+            "sid": "cond:L10",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n10",
+            "type": "step",
+            "title": "拒绝并说明原因",
+            "sid": "step:L12",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n11",
+            "type": "end",
+            "title": "超过单笔限额，已拒绝",
+            "sid": "end:L13",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n12",
+            "type": "step",
+            "title": "查询可用余额",
+            "sid": "step:L14",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n13",
+            "type": "cond",
+            "title": "余额不足？",
+            "sid": "cond:L15",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n14",
+            "type": "step",
+            "title": "拒绝并说明原因",
+            "sid": "step:L17",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n15",
+            "type": "end",
+            "title": "余额不足，已拒绝",
+            "sid": "end:L18",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n16",
+            "type": "cond",
+            "title": "需要人工复核？",
+            "sid": "cond:L19",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n17",
+            "type": "step",
+            "title": "提交人工复核",
+            "sid": "step:L21",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n18",
+            "type": "end",
+            "title": "已转人工复核",
+            "sid": "end:L22",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "skipped",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n19",
+            "type": "step",
+            "title": "冻结资金",
+            "sid": "step:L23",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n20",
+            "type": "step",
+            "title": "执行转账",
+            "sid": "step:L24",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n21",
+            "type": "step",
+            "title": "解冻资金",
+            "sid": "step:L26",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n22",
+            "type": "step",
+            "title": "发通知",
+            "sid": "step:L27",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n23",
+            "type": "end",
+            "title": "转账失败，资金已解冻",
+            "sid": "end:L28",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n24",
+            "type": "step",
+            "title": "生成记账分录",
+            "sid": "step:L29",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n25",
+            "type": "step",
+            "title": "记一笔账",
+            "sid": "step:L30",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n26",
+            "type": "step",
+            "title": "发通知",
+            "sid": "step:L31",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n27",
+            "type": "end",
+            "title": "转账完成",
+            "sid": "end:L32",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "ok",
+            "fields": {},
+            "passthrough": null
+          }
+        ],
+        "edges": [
+          {
+            "src": "n1",
+            "dst": "n2",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n2",
+            "dst": "n3",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n3",
+            "dst": "n4",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n3",
+            "dst": "n5",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n5",
+            "dst": "n6",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n6",
+            "dst": "n7",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n7",
+            "dst": "n8",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n6",
+            "dst": "n9",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n9",
+            "dst": "n10",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n10",
+            "dst": "n11",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n9",
+            "dst": "n12",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n12",
+            "dst": "n13",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n13",
+            "dst": "n14",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n14",
+            "dst": "n15",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n13",
+            "dst": "n16",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n16",
+            "dst": "n17",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n17",
+            "dst": "n18",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n16",
+            "dst": "n19",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n19",
+            "dst": "n20",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n20",
+            "dst": "n21",
+            "kind": "raise",
+            "label": ""
+          },
+          {
+            "src": "n21",
+            "dst": "n22",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n22",
+            "dst": "n23",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n20",
+            "dst": "n24",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n24",
+            "dst": "n25",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n25",
+            "dst": "n26",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n26",
+            "dst": "n27",
+            "kind": "next",
+            "label": ""
+          }
+        ],
+        "call_targets": [],
+        "unresolved": []
+      },
+      ".pystepmap/requirements/R002-转账加风控.md::R002": {
+        "key": ".pystepmap/requirements/R002-转账加风控.md::R002",
+        "file": ".pystepmap/requirements/R002-转账加风控.md",
+        "qualname": "R002",
+        "line": 0,
+        "end_line": 0,
+        "kind": "workflow",
+        "title": "转账加风控",
+        "is_async": false,
+        "sid": ".pystepmap/requirements/R002-转账加风控.md::R002",
+        "marked": true,
+        "group": "需求",
+        "route": null,
+        "retries": false,
+        "parent": null,
+        "nodes": [
+          {
+            "id": "n1",
+            "type": "start",
+            "title": "转账加风控",
+            "sid": "start",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n2",
+            "type": "step",
+            "title": "查询请求状态",
+            "sid": "step:L1",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n3",
+            "type": "cond",
+            "title": "重复提交的请求？",
+            "sid": "cond:L2",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n4",
+            "type": "end",
+            "title": "重复请求，不再处理",
+            "sid": "end:L4",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "skipped",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n5",
+            "type": "step",
+            "title": "参数校验",
+            "sid": "step:L5",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n6",
+            "type": "cond",
+            "title": "参数不合法？",
+            "sid": "cond:L6",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n7",
+            "type": "step",
+            "title": "拒绝并说明原因",
+            "sid": "step:L8",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n8",
+            "type": "end",
+            "title": "参数不合法，已拒绝",
+            "sid": "end:L9",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n9",
+            "type": "cond",
+            "title": "超过单笔限额？",
+            "sid": "cond:L10",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n10",
+            "type": "step",
+            "title": "拒绝并说明原因",
+            "sid": "step:L12",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n11",
+            "type": "end",
+            "title": "超过单笔限额，已拒绝",
+            "sid": "end:L13",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n12",
+            "type": "cond",
+            "title": "余额不足？",
+            "sid": "cond:L14",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n13",
+            "type": "step",
+            "title": "拒绝并说明原因",
+            "sid": "step:L16",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n14",
+            "type": "end",
+            "title": "余额不足，已拒绝",
+            "sid": "end:L17",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n15",
+            "type": "cond",
+            "title": "需要人工复核？",
+            "sid": "cond:L18",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n16",
+            "type": "step",
+            "title": "风控打分",
+            "sid": "step:L20",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n17",
+            "type": "step",
+            "title": "提交人工复核",
+            "sid": "step:L21",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n18",
+            "type": "end",
+            "title": "已转人工复核",
+            "sid": "end:L22",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n19",
+            "type": "step",
+            "title": "冻结资金",
+            "sid": "step:L23",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n20",
+            "type": "step",
+            "title": "执行转账",
+            "sid": "step:L24",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n21",
+            "type": "step",
+            "title": "解冻资金",
+            "sid": "step:L26",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n22",
+            "type": "step",
+            "title": "发通知",
+            "sid": "step:L27",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n23",
+            "type": "end",
+            "title": "转账失败，资金已解冻",
+            "sid": "end:L28",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n24",
+            "type": "step",
+            "title": "记一笔账",
+            "sid": "step:L29",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n25",
+            "type": "step",
+            "title": "生成记账分录",
+            "sid": "step:L30",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n26",
+            "type": "step",
+            "title": "发通知",
+            "sid": "step:L31",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n27",
+            "type": "end",
+            "title": "转账完成",
+            "sid": "end:L32",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "ok",
+            "fields": {},
+            "passthrough": null
+          }
+        ],
+        "edges": [
+          {
+            "src": "n1",
+            "dst": "n2",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n2",
+            "dst": "n3",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n3",
+            "dst": "n4",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n3",
+            "dst": "n5",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n5",
+            "dst": "n6",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n6",
+            "dst": "n7",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n7",
+            "dst": "n8",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n6",
+            "dst": "n9",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n9",
+            "dst": "n10",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n10",
+            "dst": "n11",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n9",
+            "dst": "n12",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n12",
+            "dst": "n13",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n13",
+            "dst": "n14",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n12",
+            "dst": "n15",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n15",
+            "dst": "n16",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n16",
+            "dst": "n17",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n17",
+            "dst": "n18",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n15",
+            "dst": "n19",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n19",
+            "dst": "n20",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n20",
+            "dst": "n21",
+            "kind": "raise",
+            "label": ""
+          },
+          {
+            "src": "n21",
+            "dst": "n22",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n22",
+            "dst": "n23",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n20",
+            "dst": "n24",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n24",
+            "dst": "n25",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n25",
+            "dst": "n26",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n26",
+            "dst": "n27",
+            "kind": "next",
+            "label": ""
+          }
+        ],
+        "call_targets": [],
+        "unresolved": []
+      },
+      ".pystepmap/requirements/R004-退款.md::R004": {
+        "key": ".pystepmap/requirements/R004-退款.md::R004",
+        "file": ".pystepmap/requirements/R004-退款.md",
+        "qualname": "R004",
+        "line": 0,
+        "end_line": 0,
+        "kind": "workflow",
+        "title": "退款",
+        "is_async": false,
+        "sid": ".pystepmap/requirements/R004-退款.md::R004",
+        "marked": true,
+        "group": "需求",
+        "route": null,
+        "retries": false,
+        "parent": null,
+        "nodes": [
+          {
+            "id": "n1",
+            "type": "start",
+            "title": "退款",
+            "sid": "start",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n2",
+            "type": "step",
+            "title": "查询订单",
+            "sid": "step:L1",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n3",
+            "type": "cond",
+            "title": "超过 30 天？",
+            "sid": "cond:L2",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n4",
+            "type": "end",
+            "title": "超过退款期限",
+            "sid": "end:L4",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "failed",
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n5",
+            "type": "step",
+            "title": "原路退回",
+            "sid": "step:L5",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": null,
+            "fields": {},
+            "passthrough": null
+          },
+          {
+            "id": "n6",
+            "type": "end",
+            "title": "退款完成",
+            "sid": "end:L6",
+            "subtitle": "",
+            "line": 0,
+            "end_line": 0,
+            "calls": [],
+            "end_kind": "ok",
+            "fields": {},
+            "passthrough": null
+          }
+        ],
+        "edges": [
+          {
+            "src": "n1",
+            "dst": "n2",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n2",
+            "dst": "n3",
+            "kind": "next",
+            "label": ""
+          },
+          {
+            "src": "n3",
+            "dst": "n4",
+            "kind": "yes",
+            "label": "",
+            "branch": "yes"
+          },
+          {
+            "src": "n3",
+            "dst": "n5",
+            "kind": "no",
+            "label": "",
+            "branch": "no"
+          },
+          {
+            "src": "n5",
+            "dst": "n6",
+            "kind": "next",
+            "label": ""
+          }
+        ],
+        "call_targets": [],
+        "unresolved": []
+      }
+    },
+    "lines": [
+      {
+        "id": ".pystepmap/requirements/R001-账户转账.md::R001",
+        "title": "账户转账",
+        "group": "需求",
+        "kind": "workflow",
+        "root": {
+          "function": ".pystepmap/requirements/R001-账户转账.md::R001",
+          "goto": false,
+          "children": []
+        },
+        "sid": "line:.pystepmap/requirements/R001-账户转账.md::R001"
+      },
+      {
+        "id": ".pystepmap/requirements/R002-转账加风控.md::R002",
+        "title": "转账加风控",
+        "group": "需求",
+        "kind": "workflow",
+        "root": {
+          "function": ".pystepmap/requirements/R002-转账加风控.md::R002",
+          "goto": false,
+          "children": []
+        },
+        "sid": "line:.pystepmap/requirements/R002-转账加风控.md::R002"
+      },
+      {
+        "id": ".pystepmap/requirements/R004-退款.md::R004",
+        "title": "退款",
+        "group": "需求",
+        "kind": "workflow",
+        "root": {
+          "function": ".pystepmap/requirements/R004-退款.md::R004",
+          "goto": false,
+          "children": []
+        },
+        "sid": "line:.pystepmap/requirements/R004-退款.md::R004"
+      }
+    ],
+    "common_tasks": [],
+    "selfcheck": {
+      "unreachable": [],
+      "dead_ends": [],
+      "unresolved_calls": 0,
+      "guessed_calls": 0,
+      "skipped_files": []
+    },
+    "file_hashes": {},
+    "sids": {
+      ".pystepmap/requirements/R001-账户转账.md::R001": ".pystepmap/requirements/R001-账户转账.md::R001",
+      ".pystepmap/requirements/R002-转账加风控.md::R002": ".pystepmap/requirements/R002-转账加风控.md::R002",
+      ".pystepmap/requirements/R004-退款.md::R004": ".pystepmap/requirements/R004-退款.md::R004"
+    }
+  },
+  "run": null
+}

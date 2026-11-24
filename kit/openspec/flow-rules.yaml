@@ -1,0 +1,19 @@
+# pystepmap 约束套件：给 OpenSpec 项目用的规则片段（不是完整的 config.yaml）。
+#
+# 用法：把下面 rules 里的条目合并进项目的 openspec/config.yaml 的 rules 下面；config.yaml 里已经有同名的
+# proposal / design / tasks 时，把条目追加到它的列表末尾。OpenSpec 只把 rules.<产物> 注入到同名产物的提示里：
+# proposal 的规则在写 proposal.md 时生效，tasks 的规则在写 tasks.md 时生效。
+#
+# 适用于用 pystepkit 标记写流程代码、并且用 OpenSpec 管理变更的项目。pystepmap 自己的开发不强制使用 OpenSpec，
+# 本仓库也没有 openspec/ 目录；约束由 pystepmap check、编辑后的钩子和提交前检查保证。
+#
+# 命令假设在项目根目录能运行 uv run pystepmap；不是 uv 项目时换成自己的运行方式。
+
+rules:
+  proposal:
+    - "改动涉及带 pystepkit 标记的编排函数（@workflow 标的函数，或 @workflow 标的类的编排方法，默认 run）时，What Changes 里必须单列「流程变化」：逐条写出新增、删除或改动的步骤（@step / @node）、判断（@condition）和结局（outcome；接口函数是 return 的响应和 raise 的 HTTPException），以及改动前后的走向，例如「余额不足？→ 是 → 拒绝并说明原因 → failed」。没有改编排函数时写「流程不变」。"
+  design:
+    - "有流程变化时，把改完之后的整条流程写成一个 flow 代码块（围栏写 ```flow），pystepmap 直接读它、实现后和代码的流程对照：块里第一行写「功能线：<功能线的标题，即 @workflow 的 title>」，下面每行一个节点、缩进表示从属——「步骤：标题」（下面可以缩进「失败时：」再缩进写出错之后的内容）、「判断：标题」（下面缩进「是：」/「否：」，各自再缩进写内容）、「循环：标题」、「结局（成功|跳过|失败）：标题」。标题就是之后代码里的中文标题（@step、@condition、outcome 的 title），设计里写什么代码里就写什么；不写变量、参数、代码。流程不变时不写这个代码块。"
+    - "流程变化落实到编排函数的走向上：新分支写成 @condition 判断函数加 if，新环节写成新的步骤调用，新出口写 outcome(...) 并带中文标题（编排函数本身是 FastAPI 接口函数时不用 outcome：成功的出口 return 响应，失败的出口 raise HTTPException(status_code=…, detail=中文说明)）；不在已有步骤里叠加判断来实现新分支。"
+  tasks:
+    - "只要改了带 pystepkit 标记的代码，任务清单最后必须有这两项：「运行 uv run pystepmap check . --files <改过的文件>，检查零违规」；「运行 uv run pystepmap analyze <项目目录> -o <图.json> 重新生成流程图，核对受影响的功能线与 proposal 里的流程变化一致」。design.md 里有 flow 代码块时再加一项：「运行 uv run pystepmap requirements <项目目录>（或 pystepmap MCP 的 get_requirement，编号是变更名），设计的流程和实现零差异；有差异时逐条说明是代码要改还是设计要改」。"

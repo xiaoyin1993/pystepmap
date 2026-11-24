@@ -1,0 +1,8 @@
+{
+  "extra_exclude": ["spike", "examples", "local"],
+  "extra_entries": [
+    {"match": "core/src/pystepmap/cli.py::_cmd_*", "group": "命令行"},
+    {"match": "server/src/pystepmap_server/mcp_tools.py::Tools.[!_c]*", "group": "MCP 工具"},
+    {"match": "server/src/pystepmap_server/mcp_tools.py::Tools.check", "group": "MCP 工具"}
+  ]
+}

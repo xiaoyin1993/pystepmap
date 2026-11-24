@@ -1,0 +1,28 @@
+[project]
+name = "pystepmap-core"
+version = "0.1.0"
+description = "pystepmap 核心：把 Python 后端代码静态分析成流程图"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pystepmap"]
+
+# 约束套件（pystepmap kit install 装进别的项目的文件）：仓库里它们在自己用的位置，打包时放进包里
+[tool.hatch.build.targets.wheel.force-include]
+"../.claude/skills/flow-style/SKILL.md" = "pystepmap/kit_assets/SKILL.md"
+"../.claude/skills/flow-style/dbos.md" = "pystepmap/kit_assets/dbos.md"
+"../.claude/skills/flow-style/requirements.md" = "pystepmap/kit_assets/requirements.md"
+"../.claude/skills/flow-style/routes.md" = "pystepmap/kit_assets/routes.md"
+"../examples/transfer/transfer_workflow.py" = "pystepmap/kit_assets/transfer_workflow.py"
+"../kit/hooks/check_edited_file.py" = "pystepmap/kit_assets/check_edited_file.py"
+"../kit/hooks/pre-commit" = "pystepmap/kit_assets/pre-commit"
+"../kit/openspec/flow-rules.yaml" = "pystepmap/kit_assets/openspec-flow-rules.yaml"
+
+[project.scripts]
+pystepmap = "pystepmap.cli:main"

@@ -1,0 +1,369 @@
+{
+ "about": "core 的 runpath.entry_functions 和界面的 entryFunctions 共用的用例：一个测试的运行路径（run_paths_to_json 里 tests 的一项）和它的入口函数（排序）。",
+ "cases": [
+  {
+   "name": "direct",
+   "about": "测试调用流程，流程直接调用步骤和辅助函数：只有流程是入口",
+   "test": {
+    "test": "tests/test_x.py::test_direct",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::step": 1,
+       "wf.py::helper": 1
+      }
+     },
+     "wf.py::step": {
+      "function": "wf.py::step",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::helper": 1
+      }
+     },
+     "wf.py::helper": {
+      "function": "wf.py::helper",
+      "executions": 2,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow"
+   ]
+  },
+  {
+   "name": "indirect",
+   "about": "流程经库的包装函数（@DBOS.step() 之类）调用步骤：记在 icalls 里，步骤不是入口",
+   "test": {
+    "test": "tests/test_x.py::test_indirect",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "icalls": {
+       "wf.py::step": 1
+      }
+     },
+     "wf.py::step": {
+      "function": "wf.py::step",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow"
+   ]
+  },
+  {
+   "name": "indirect_old_data",
+   "about": "同 indirect，但是早于 icalls 的数据（没有这个字段）：步骤被当成入口",
+   "test": {
+    "test": "tests/test_x.py::test_old",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     },
+     "wf.py::step": {
+      "function": "wf.py::step",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow",
+    "wf.py::step"
+   ]
+  },
+  {
+   "name": "self_call",
+   "about": "递归：自己调用自己不算，仍是入口",
+   "test": {
+    "test": "tests/test_x.py::test_self",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::flow": 1
+      }
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow"
+   ]
+  },
+  {
+   "name": "mutual_recursion",
+   "about": "互相递归、又只由测试调用的两个函数：都不算入口（已知的局限）",
+   "test": {
+    "test": "tests/test_x.py::test_mutual",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::step": 1
+      }
+     },
+     "wf.py::step": {
+      "function": "wf.py::step",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::flow": 1
+      }
+     }
+    }
+   },
+   "entries": []
+  },
+  {
+   "name": "unrecorded_task",
+   "about": "asyncio.gather 调度的协程、别的线程里执行的函数：记不到调用方，被当成入口",
+   "test": {
+    "test": "tests/test_x.py::test_gather",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     },
+     "wf.py::step": {
+      "function": "wf.py::step",
+      "executions": 2,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow",
+    "wf.py::step"
+   ]
+  },
+  {
+   "name": "flow_and_test",
+   "about": "辅助函数既被流程调用、又被测试直接调用：记下过调用它的，不算入口（已知的局限）",
+   "test": {
+    "test": "tests/test_x.py::test_both",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::helper": 1
+      }
+     },
+     "wf.py::helper": {
+      "function": "wf.py::helper",
+      "executions": 2,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     },
+     "wf.py::other": {
+      "function": "wf.py::other",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow",
+    "wf.py::other"
+   ]
+  },
+  {
+   "name": "both_kinds",
+   "about": "同一个被调函数一处直接、一处经包装函数调用：calls、icalls 都算",
+   "test": {
+    "test": "tests/test_x.py::test_both_kinds",
+    "outcome": "failed",
+    "seconds": 0.1,
+    "cases": 1,
+    "exc": "ValueError",
+    "excs": [
+     "ValueError"
+    ],
+    "functions": {
+     "wf.py::flow": {
+      "function": "wf.py::flow",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "calls": {
+       "wf.py::step": 1
+      },
+      "icalls": {
+       "wf.py::helper": 1
+      }
+     },
+     "wf.py::step": {
+      "function": "wf.py::step",
+      "executions": 1,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false,
+      "icalls": {
+       "wf.py::helper": 1
+      }
+     },
+     "wf.py::helper": {
+      "function": "wf.py::helper",
+      "executions": 2,
+      "nodes": {},
+      "edges": {},
+      "exits": {},
+      "first_path": [],
+      "off_graph": 0,
+      "has_time": false
+     }
+    }
+   },
+   "entries": [
+    "wf.py::flow"
+   ]
+  }
+ ]
+}

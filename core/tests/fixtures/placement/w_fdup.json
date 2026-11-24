@@ -1,0 +1,344 @@
+{
+ "name": "w_fdup",
+ "about": "两个 @overload 桩后面是真正的实现（W.step#3）；重新分析时前面多一个桩，实现变成 #4：按形状找回",
+ "graphs": {
+  "g1": {
+   "wf.py::W.run@8": {
+    "sid": "wf.py::W.run",
+    "file": "wf.py",
+    "qualname": "W.run",
+    "line": 8,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "step:30a87f45"
+     ],
+     [
+      "n3",
+      "end:30a87f45"
+     ],
+     [
+      "n4",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@12": {
+    "sid": "wf.py::W.step",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 12,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "end:implicit"
+     ],
+     [
+      "n3",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@15": {
+    "sid": "wf.py::W.step#2",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 15,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "end:implicit"
+     ],
+     [
+      "n3",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@17": {
+    "sid": "wf.py::W.step#3",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 17,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "cond:4389522b"
+     ],
+     [
+      "n3",
+      "end:e0e1f9fa"
+     ],
+     [
+      "n4",
+      "end:7f923f79"
+     ],
+     [
+      "n5",
+      "end:uncaught"
+     ]
+    ]
+   }
+  },
+  "g2": {
+   "wf.py::W.run@8": {
+    "sid": "wf.py::W.run",
+    "file": "wf.py",
+    "qualname": "W.run",
+    "line": 8,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "step:30a87f45"
+     ],
+     [
+      "n3",
+      "end:30a87f45"
+     ],
+     [
+      "n4",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@12": {
+    "sid": "wf.py::W.step",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 12,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "end:implicit"
+     ],
+     [
+      "n3",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@15": {
+    "sid": "wf.py::W.step#2",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 15,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "end:implicit"
+     ],
+     [
+      "n3",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@18": {
+    "sid": "wf.py::W.step#3",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 18,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "end:implicit"
+     ],
+     [
+      "n3",
+      "end:uncaught"
+     ]
+    ]
+   },
+   "wf.py::W.step@20": {
+    "sid": "wf.py::W.step#4",
+    "file": "wf.py",
+    "qualname": "W.step",
+    "line": 20,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "cond:4389522b"
+     ],
+     [
+      "n3",
+      "end:e0e1f9fa"
+     ],
+     [
+      "n4",
+      "end:7f923f79"
+     ],
+     [
+      "n5",
+      "end:uncaught"
+     ]
+    ]
+   }
+  }
+ },
+ "run": {
+  "version": 1,
+  "tests": [
+   {
+    "test": "tests/test_w.py::test_w",
+    "outcome": "passed",
+    "seconds": 0.00017,
+    "cases": 1,
+    "functions": {
+     "wf.py::W.run": {
+      "function": "wf.py::W.run",
+      "executions": 1,
+      "nodes": {
+       "start": {
+        "visits": 1,
+        "ns": 0
+       },
+       "step:30a87f45": {
+        "visits": 1,
+        "ns": 13166
+       },
+       "end:30a87f45": {
+        "visits": 1,
+        "ns": 0
+       }
+      },
+      "edges": {
+       "start|step:30a87f45": 1,
+       "step:30a87f45|end:30a87f45": 1
+      },
+      "exits": {
+       "end:30a87f45|return|": 1
+      },
+      "first_path": [
+       "start",
+       "step:30a87f45",
+       "end:30a87f45"
+      ],
+      "off_graph": 0,
+      "has_time": true
+     },
+     "wf.py::W.step#3": {
+      "function": "wf.py::W.step#3",
+      "executions": 1,
+      "nodes": {
+       "start": {
+        "visits": 1,
+        "ns": 0
+       },
+       "cond:4389522b": {
+        "visits": 1,
+        "ns": 625
+       },
+       "end:e0e1f9fa": {
+        "visits": 1,
+        "ns": 1250
+       }
+      },
+      "edges": {
+       "start|cond:4389522b": 1,
+       "cond:4389522b|end:e0e1f9fa": 1
+      },
+      "exits": {
+       "end:e0e1f9fa|return|": 1
+      },
+      "first_path": [
+       "start",
+       "cond:4389522b",
+       "end:e0e1f9fa"
+      ],
+      "off_graph": 0,
+      "has_time": true
+     }
+    }
+   }
+  ],
+  "shapes": {
+   "wf.py::W.run": {
+    "shape": "20acfc82b2f5cf5c570f863868d0d643cad1e899",
+    "dups": []
+   },
+   "wf.py::W.step": {
+    "shape": "f595135389282fe7dbd5d316043f4738f69ae5e7",
+    "dups": []
+   },
+   "wf.py::W.step#2": {
+    "shape": "f595135389282fe7dbd5d316043f4738f69ae5e7",
+    "dups": []
+   },
+   "wf.py::W.step#3": {
+    "shape": "9091ab47f2b86f9781eb27a38224ed32f35a5830",
+    "dups": []
+   }
+  },
+  "function_dups": [
+   "wf.py::W.step"
+  ]
+ },
+ "expect": {
+  "g1|tests/test_w.py::test_w": {
+   "unmatched": 0,
+   "placed": {
+    "wf.py::W.run@8": {
+     "end:30a87f45": "n3",
+     "start": "n1",
+     "step:30a87f45": "n2"
+    },
+    "wf.py::W.step@17": {
+     "cond:4389522b": "n2",
+     "end:e0e1f9fa": "n3",
+     "start": "n1"
+    }
+   }
+  },
+  "g2|tests/test_w.py::test_w": {
+   "unmatched": 0,
+   "placed": {
+    "wf.py::W.run@8": {
+     "end:30a87f45": "n3",
+     "start": "n1",
+     "step:30a87f45": "n2"
+    },
+    "wf.py::W.step@20": {
+     "cond:4389522b": "n2",
+     "end:e0e1f9fa": "n3",
+     "start": "n1"
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pystepmap": {
+      "command": "uv",
+      "args": ["run", "pystepmap", "mcp"]
+    }
+  }
+}

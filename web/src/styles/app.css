@@ -1,0 +1,1319 @@
+/* 外框：顶栏、左边主列表、右边详情栏。颜色同 src/theme.ts 的 C。 */
+:root {
+  color-scheme: dark;
+  --ink: #0b0c0e;
+  --panel: #15161a;
+  --panel-line: #25272d;
+  --canvas: #1a1b1f;
+  --surface: #25262c;
+  --surface-line: #3a3c45;
+  --text: #eceef2;
+  --text-soft: #c5c8d0;
+  --muted: #979aa6;
+  --faint: #6b6e7a;
+  --task: #4c7dff;
+  --task-soft: #8eabff;
+  --decision: #e8a13a;
+  --loop: #2fb8a8;
+  --catch: #c8418f;
+  --finally: #a194f2;
+  --ok: #3fcf7f;
+  --skipped: #9aa1b2;
+  --failed: #ff6161;
+  --exception: #cf7dff;
+  --sans: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --mono: 'SF Mono', ui-monospace, Menlo, 'JetBrains Mono', Consolas, monospace;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+code {
+  font-family: var(--mono);
+}
+
+.app {
+  display: grid;
+  grid-template-rows: 52px minmax(0, 1fr);
+  /* 一列、不随顶栏的内容变宽：顶栏放不下时顶栏里的东西收窄（运行状态、搜索框），不把整个页面撑出窗口 */
+  grid-template-columns: minmax(0, 1fr);
+  height: 100vh;
+  min-width: 1100px;
+}
+/* 看变更记录时顶栏下面多一行横幅（ReviewBanner.vue） */
+.app.with-banner {
+  grid-template-rows: 52px auto minmax(0, 1fr);
+}
+
+/* 顶栏 */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 16px;
+  background: var(--ink);
+  border-bottom: 1px solid var(--panel-line);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 232px;
+  flex: none;
+}
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--task);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.brand-sub {
+  font-size: 12px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.topbar .search {
+  width: 300px;
+  flex: 0 1 300px;
+  min-width: 180px;
+}
+.top-stats {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.workspace {
+  position: relative;
+  display: grid;
+  /* 两栏的宽度由 App.vue 按拖动的结果设（panelWidth.ts），默认就是以前固定的 264 / 320 */
+  grid-template-columns: var(--list-w, 264px) minmax(0, 1fr) var(--detail-w, 320px);
+  min-height: 0;
+}
+/* 分界线（ResizeHandle.vue）：骑在栏和画布的边界上 */
+.rh.rh-at-list {
+  left: var(--list-w, 264px);
+}
+.rh.rh-at-detail {
+  left: calc(100% - var(--detail-w, 320px));
+}
+
+/* 左：功能线主列表 */
+.linelist {
+  background: var(--panel);
+  border-right: 1px solid var(--panel-line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.list-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 20px;
+  padding: 12px 18px 4px;
+  font-size: 12px;
+  color: var(--faint);
+}
+/* "只看有变化的（N）" */
+.lc-toggle {
+  all: unset;
+  flex: none;
+  font-size: 11.5px;
+  line-height: 18px;
+  padding: 0 7px;
+  border-radius: 9px;
+  border: 1px solid var(--surface-line);
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.lc-toggle:hover {
+  border-color: var(--decision);
+}
+.lc-toggle.on {
+  color: #0b0c0e;
+  background: var(--decision);
+  border-color: var(--decision);
+}
+.lc-toggle:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 1px;
+}
+.list-scroll {
+  flex: 1;
+  min-height: 0;
+}
+.grp {
+  padding: 0 8px 6px;
+}
+.grp-name {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8b8e9a;
+  padding: 12px 10px 5px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.grp-name:hover:not(:disabled),
+.grp-name:focus-visible {
+  color: var(--text-soft);
+}
+.grp-name:disabled {
+  cursor: default;
+}
+.grp-name.folded {
+  padding-bottom: 8px;
+}
+.grp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.grp-chev {
+  flex: none;
+  opacity: 0.7;
+}
+.grp-here {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--task);
+}
+.grp-n {
+  color: var(--faint);
+  font-weight: 400;
+}
+.li {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  width: 100%;
+  padding: 7px 10px 7px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.li:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.li.on {
+  background: #1a2240;
+  border-color: #3557c4;
+}
+.li:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: -2px;
+}
+.li-main {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 19px;
+}
+.li-method {
+  flex: none;
+  font: 600 10.5px/19px var(--mono);
+}
+.li-path {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.li-kind {
+  flex: none;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--task-soft);
+  border: 1px solid #2f4486;
+  border-radius: 4px;
+  padding: 0 4px;
+}
+.li-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.li-second {
+  grid-column: 1;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.li-second.code {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.li-tasks {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--task-soft);
+  background: #1a2347;
+  border-radius: 9px;
+  padding: 0 7px;
+}
+/* 手工改过的条目："已改"小标记；鼠标停在条目上时右边出现笔形按钮（盖住任务数） */
+.li-wrap {
+  position: relative;
+}
+.li-edited {
+  flex: none;
+  align-self: center;
+  font-size: 10px;
+  line-height: 14px;
+  padding: 0 4px;
+  border-radius: 3px;
+  color: var(--decision);
+  border: 1px solid rgba(232, 161, 58, 0.45);
+  cursor: help;
+}
+/* 和对比基准比："新增"（成功绿）、"有变化"（警告琥珀），实底，和只有边框的"已改"分开 */
+.li-change {
+  flex: none;
+  align-self: center;
+  font-size: 10px;
+  line-height: 14px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid;
+  cursor: help;
+}
+.li-change.ch-added {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+}
+.li-change.ch-changed {
+  color: var(--decision);
+  background: color-mix(in srgb, var(--decision) 14%, transparent);
+}
+/* 涉及的代码在分析之后改过（过期检查）：标题旁一个琥珀色小点 */
+.li-stale {
+  flex: none;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--decision);
+  cursor: help;
+}
+/* 运行中（测试命令在跑）：有函数执行过的功能线一个蓝色小点；最近一次刷新时变多了的，外面多一圈 */
+.li-live {
+  flex: none;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--task);
+  cursor: help;
+}
+.li-live.fresh {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px var(--task-soft);
+  animation: li-live-in 1.2s ease-out 1;
+}
+@keyframes li-live-in {
+  from {
+    box-shadow: 0 0 0 2px var(--panel), 0 0 0 7px color-mix(in srgb, var(--task-soft) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .li-live.fresh {
+    animation: none;
+  }
+}
+/* 列表最下面：被删掉的功能线（折叠的小节，只是文字） */
+.grp-removed {
+  margin: 6px 8px 18px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.grp-removed summary {
+  cursor: pointer;
+  padding: 6px 0;
+  color: #8b8e9a;
+}
+.grp-removed ul {
+  margin: 0;
+  padding: 0 0 0 4px;
+  list-style: none;
+}
+.grp-removed li {
+  display: flex;
+  gap: 8px;
+  line-height: 20px;
+  text-decoration: line-through;
+  text-decoration-color: var(--faint);
+}
+.lr-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lr-group {
+  flex: none;
+  color: var(--faint);
+}
+/* 不在功能线上的有变化的函数：函数还在（删掉的除外），不划掉；一行里标题、函数名（挤不下先省略函数名）、变了什么 */
+.grp-offline li {
+  text-decoration: none;
+}
+.grp-offline li.off-removed .lr-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--faint);
+}
+.grp-offline .lr-title {
+  flex: 0 1 auto;
+}
+.lr-file {
+  flex: 1 100 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--faint);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11px;
+}
+.li-edit {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  margin-top: -12px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--text-soft);
+  background: #22242b;
+  border: 1px solid var(--surface-line);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+/* 有焦点时总显示（不只是键盘的 focus-visible）：改完关上小框后焦点回到这里，用鼠标点的"保存"也看得到 */
+.li-wrap:hover .li-edit,
+.li-wrap.editing .li-edit,
+.li-edit:focus {
+  opacity: 1;
+  pointer-events: auto;
+}
+.li-wrap:hover .li-tasks,
+.li-wrap.editing .li-tasks,
+.li-wrap:has(.li-edit:focus) .li-tasks {
+  opacity: 0;
+}
+.li-edit:hover {
+  color: var(--text);
+  border-color: var(--task-soft);
+}
+.li-edit:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 1px;
+}
+.list-empty {
+  padding: 40px 16px;
+}
+
+/* 右：详情栏 */
+.detail {
+  background: var(--panel);
+  border-left: 1px solid var(--panel-line);
+  min-height: 0;
+}
+/* 详情栏只竖着滚：里面宽的东西（代码）各自在自己的框里横着滚，整栏不会被触控板横着带走、把内容挪出左边 */
+.detail .n-scrollbar-container {
+  overflow-x: hidden;
+}
+.detail-inner {
+  padding: 18px 18px 32px;
+  min-width: 0;
+}
+/* 运行路径页签：节点详情嵌在运行面板上方的一块里 */
+.detail-embedded .detail-inner {
+  padding: 4px 0 6px;
+}
+.d-run {
+  margin: 0 0 10px;
+  padding: 5px 9px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  border-left: 2px solid var(--surface-line);
+  background: #1a1b20;
+  border-radius: 0 6px 6px 0;
+}
+.d-run.walked {
+  color: var(--text-soft);
+  border-left-color: var(--task);
+  background: color-mix(in srgb, var(--task) 8%, transparent);
+}
+.d-run.d-run-stop {
+  color: var(--text-soft);
+  border-left-color: var(--failed);
+  background: color-mix(in srgb, var(--failed) 8%, transparent);
+}
+.d-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.d-type {
+  font-size: 11.5px;
+  line-height: 19px;
+  border: 1px solid var(--surface-line);
+  border-radius: 4px;
+  padding: 0 6px;
+  color: var(--text-soft);
+}
+.d-type.task {
+  color: var(--task-soft);
+  border-color: #3557c4;
+}
+.d-flag {
+  font-size: 11.5px;
+  line-height: 19px;
+  color: var(--muted);
+  background: #1f2126;
+  border-radius: 4px;
+  padding: 0 6px;
+}
+/* 和对比基准比（颜色同画布：新增成功绿、改动警告琥珀） */
+.d-flag.d-added {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.d-flag.d-changed {
+  color: var(--decision);
+  background: color-mix(in srgb, var(--decision) 12%, transparent);
+}
+.d-was {
+  margin: -2px 0 10px;
+  padding: 6px 9px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  border-left: 2px solid var(--decision);
+  background: color-mix(in srgb, var(--decision) 6%, transparent);
+  border-radius: 0 6px 6px 0;
+}
+.d-was .d-code {
+  margin: 4px 0 0;
+}
+.d-changed-text {
+  color: var(--decision);
+}
+.d-removed li {
+  text-decoration: line-through;
+  text-decoration-color: var(--faint);
+}
+.lg-mark {
+  flex: none;
+  min-width: 15px;
+  box-sizing: border-box;
+  text-align: center;
+  font: 600 10px/15px var(--sans);
+  padding: 0 5px;
+  border-radius: 8px;
+  color: #0b0c0e;
+}
+.lg-mark.added {
+  background: var(--ok);
+}
+.lg-mark.changed {
+  background: var(--decision);
+}
+.d-title {
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.d-title.quiet {
+  font-size: 15px;
+  color: var(--text-soft);
+}
+.d-code {
+  display: block;
+  font: 12px/1.55 var(--mono);
+  color: #c9ccd6;
+  background: #0f1013;
+  border: 1px solid var(--panel-line);
+  border-radius: 6px;
+  padding: 7px 9px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+}
+.d-fn,
+.d-loc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.d-fn code,
+.d-loc code {
+  color: var(--text-soft);
+}
+.d-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+.d-sec {
+  border-top: 1px solid #23252b;
+  margin-top: 16px;
+  padding-top: 14px;
+}
+.d-sec h3 {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin: 0 0 9px;
+}
+.d-n {
+  color: var(--faint);
+  font-weight: 400;
+  margin-left: 4px;
+}
+.d-calls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.call-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.call-name {
+  font-size: 12px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.call-target {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.call-target.dim {
+  color: var(--faint);
+}
+.res {
+  font-size: 10.5px;
+  line-height: 16px;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.res-exact {
+  color: #8fdcb0;
+  border-color: #2b5a40;
+}
+.res-guessed {
+  color: #f2b860;
+  border-style: dashed;
+  border-color: #a37329;
+}
+.res-unresolved {
+  color: #f19aa8;
+  border-style: dotted;
+  border-color: #a24557;
+}
+.res-external,
+.res-cond {
+  color: #a9adb9;
+  border-color: var(--surface-line);
+}
+.res-dispatch {
+  color: var(--task-soft);
+  border-color: #2f4486;
+}
+.d-hint {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.d-hint code {
+  color: var(--text-soft);
+  font-size: 11.5px;
+}
+.d-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.d-btns .n-button {
+  max-width: 100%;
+}
+.d-btns .n-button .n-button__content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.d-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-soft);
+}
+.d-link {
+  all: unset;
+  color: var(--task-soft);
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 12px;
+}
+.d-link:hover {
+  text-decoration: underline;
+}
+.d-link:focus-visible {
+  outline: 2px solid var(--task-soft);
+}
+.d-dim {
+  color: var(--faint);
+  font-size: 12px;
+}
+.d-fields {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 5px 12px;
+  font-size: 12px;
+  margin: 0;
+}
+.d-fields dt {
+  color: var(--muted);
+}
+.d-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.d-end {
+  margin-left: 10px;
+  white-space: nowrap;
+}
+
+/* 图例 */
+.legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.legend .lg-ends {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.legend .lg-ends li {
+  gap: 0;
+}
+.lg-node {
+  width: 26px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid #50535f;
+  flex: none;
+}
+.lg-node.cond {
+  background: #2b251b;
+  border-color: #b07a2a;
+}
+.lg-node.loop {
+  background: #1c2827;
+  border-color: #23867a;
+}
+.lg-node.catch {
+  background: #2a1a26;
+  border-color: #a03a78;
+}
+.lg-node.fold {
+  background: transparent;
+  border: 1px dashed #8b8e9a;
+}
+.lg-line {
+  width: 40px;
+  height: 8px;
+  flex: none;
+}
+.legend .chip {
+  flex: none;
+}
+
+/* 需求（左边列表切到"需求"、画布标题区、右栏 RequirementPanel.vue）。状态四色：草稿灰、已确认任务蓝、已实现绿框、
+   已完成绿底；和实现对不上的标记沿用流程差异的颜色：读不懂红、不一致琥珀。 */
+.list-switch {
+  display: flex;
+  gap: 2px;
+  margin: 10px 12px 0;
+  padding: 3px;
+  background: #0f1013;
+  border: 1px solid #26282e;
+  border-radius: 8px;
+}
+.ls-tab {
+  all: unset;
+  flex: 1;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 22px;
+  border-radius: 5px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ls-tab:hover {
+  color: var(--text-soft);
+}
+.ls-tab.on {
+  background: #2a2c33;
+  color: var(--text);
+  font-weight: 500;
+}
+.ls-tab:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 1px;
+}
+.ls-n {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--faint);
+}
+.ls-tab.on .ls-n {
+  color: var(--muted);
+}
+.rq-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rq-refresh:disabled,
+.rq-refresh[disabled] {
+  cursor: default;
+  opacity: 0.7;
+}
+.rq-spin {
+  animation: rq-spin 0.9s linear infinite;
+}
+@keyframes rq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rq-spin {
+    animation: none;
+  }
+}
+.rq-list-error {
+  margin: 4px 18px 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #e59a9a;
+}
+.rq-grp {
+  padding-top: 6px;
+}
+.rq-li .li-main {
+  gap: 7px;
+}
+.rq-id {
+  flex: none;
+  font: 600 11px/19px var(--mono);
+  color: var(--task-soft);
+}
+.rq-mark {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  line-height: 14px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid;
+  vertical-align: 1px;
+  cursor: help;
+}
+.rq-mark.rq-warn {
+  color: var(--decision);
+  background: color-mix(in srgb, var(--decision) 14%, transparent);
+}
+.rq-mark.rq-bad {
+  color: var(--failed);
+  background: color-mix(in srgb, var(--failed) 14%, transparent);
+}
+.rq-status {
+  flex: none;
+  font-size: 11px;
+  line-height: 17px;
+  padding: 0 6px;
+  border-radius: 9px;
+  border: 1px solid var(--surface-line);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.rq-li .rq-status {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+}
+.rq-status.st-confirmed {
+  color: var(--task-soft);
+  border-color: #3557c4;
+}
+.rq-status.st-done {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 55%, transparent);
+}
+.rq-status.st-finished {
+  color: #0b0c0e;
+  background: var(--ok);
+  border-color: var(--ok);
+}
+/* 画布标题区："功能线：…"可以点过去 */
+.head-link {
+  all: unset;
+  color: var(--task-soft);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.head-link:hover {
+  text-decoration: underline;
+}
+.head-link:focus-visible {
+  outline: 2px solid var(--task-soft);
+}
+.head-meta .rq-status {
+  line-height: 16px;
+}
+/* 右栏 */
+.rq-panel-id {
+  font-size: 12px;
+  line-height: 19px;
+  color: var(--task-soft);
+}
+.rq-node {
+  margin: -4px 0 16px;
+  padding: 10px 12px 2px;
+  border-radius: 8px;
+  background: #1a1b20;
+  border: 1px solid #2a2c33;
+}
+.rq-node .d-title {
+  font-size: 15px;
+}
+.rq-node-why {
+  margin-bottom: 8px;
+}
+.rq-node-why li {
+  padding-left: 9px;
+  border-left: 2px solid var(--failed);
+}
+.rq-verdict {
+  margin: 2px 0 0;
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  border-radius: 0 6px 6px 0;
+  border-left: 3px solid;
+}
+.rq-verdict.rq-v-ok {
+  color: var(--ok);
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 9%, transparent);
+}
+.rq-verdict.rq-v-warn {
+  color: #f2b860;
+  border-color: var(--decision);
+  background: color-mix(in srgb, var(--decision) 9%, transparent);
+}
+.rq-verdict.rq-v-bad {
+  color: #f19a9a;
+  border-color: var(--failed);
+  background: color-mix(in srgb, var(--failed) 9%, transparent);
+}
+.rq-errors li {
+  color: #f19a9a;
+  overflow-wrap: anywhere;
+}
+.rq-desc {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-soft);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.rq-diffs li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.rq-diff-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.rq-diff-text .d-link {
+  margin-left: 6px;
+}
+.rq-kind {
+  flex: none;
+  margin-top: 1px;
+  font-size: 10.5px;
+  line-height: 16px;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.rq-kind.k-missing {
+  color: var(--failed);
+  background: color-mix(in srgb, var(--failed) 12%, transparent);
+}
+.rq-kind.k-extra {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.rq-kind.k-kind,
+.rq-kind.k-order,
+.rq-kind.k-other {
+  color: var(--decision);
+  background: color-mix(in srgb, var(--decision) 12%, transparent);
+}
+.rq-outcomes li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.rq-outcome {
+  all: unset;
+  min-width: 0;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.rq-outcome:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--faint);
+}
+.rq-outcome:focus-visible {
+  outline: 2px solid var(--task-soft);
+}
+.rq-cov {
+  flex: none;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.rq-cov-ok {
+  color: var(--ok);
+}
+.rq-cov-bad {
+  color: var(--failed);
+}
+.rq-cov-unsure {
+  color: var(--muted);
+}
+.rq-cov-dim {
+  color: var(--faint);
+}
+.rq-run {
+  margin: 10px 0 0;
+}
+.rq-reach {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #f2b860;
+}
+.rq-open {
+  display: block;
+  margin-top: 6px;
+}
+
+/* 需求列表的分组（RequirementList.vue）：一个变更里的几块流程、"已归档"、归档日期；组里的行往右缩一点，左边一条竖线 */
+.rq-grp + .rq-archived {
+  margin-top: 8px;
+  border-top: 1px solid var(--panel-line);
+}
+.rq-fold {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  line-height: 19px;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.rq-fold:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+}
+.rq-fold:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: -2px;
+}
+.rq-fold:disabled {
+  cursor: default;
+}
+.rq-fold-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rq-day-date {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.rq-fold .grp-n {
+  flex: none;
+  font-size: 11px;
+}
+.rq-fold .rq-status {
+  margin-left: auto;
+}
+.rq-nest {
+  margin-left: 15px;
+  padding-left: 5px;
+  border-left: 1px solid var(--panel-line);
+}
+.rq-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding: 6px 10px 1px;
+}
+.rq-sub .rq-id {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rq-sub .grp-n {
+  flex: none;
+  font-size: 11px;
+}
+.li.rq-in {
+  padding: 5px 10px;
+}
+.rq-mark.rq-side {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  margin-right: 0;
+}
+
+/* "查看文件内容"：渲染好的需求文件（Markdown） */
+.md {
+  max-height: 70vh;
+  overflow: auto;
+  padding: 4px 18px 14px;
+  background: #0f1013;
+  border: 1px solid var(--panel-line);
+  border-radius: 6px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+.md:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 1px;
+}
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  margin: 20px 0 8px;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.md h1 {
+  font-size: 20px;
+}
+.md h2 {
+  font-size: 17px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.md h3 {
+  font-size: 15px;
+}
+.md h4,
+.md h5,
+.md h6 {
+  font-size: 13.5px;
+}
+.md p,
+.md ul,
+.md ol,
+.md pre,
+.md blockquote,
+.md .md-table {
+  margin: 0 0 10px;
+}
+.md ul,
+.md ol {
+  padding-left: 22px;
+}
+.md li > ul,
+.md li > ol {
+  margin: 2px 0;
+}
+.md li > p {
+  margin: 0 0 4px;
+}
+.md strong {
+  color: var(--text);
+}
+.md a {
+  color: var(--task-soft);
+}
+.md code {
+  font: 12px/1.55 var(--mono);
+  color: #c9ccd6;
+  background: var(--surface);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.md pre {
+  padding: 9px 12px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.md pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.md blockquote {
+  padding: 2px 12px;
+  border-left: 3px solid var(--surface-line);
+  color: var(--muted);
+}
+.md blockquote > :last-child {
+  margin-bottom: 0;
+}
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--panel-line);
+  margin: 16px 0;
+}
+.md .md-table {
+  overflow-x: auto;
+}
+.md table {
+  border-collapse: collapse;
+  font-size: 12.5px;
+  overflow-wrap: normal;
+}
+.md th,
+.md td {
+  padding: 5px 10px;
+  border: 1px solid var(--panel-line);
+  text-align: left;
+  vertical-align: top;
+}
+.md th {
+  color: var(--text);
+  background: var(--panel);
+  white-space: nowrap;
+}

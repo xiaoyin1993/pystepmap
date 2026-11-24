@@ -1,0 +1,859 @@
+{
+  "schema_version": 1,
+  "root": "<root>",
+  "functions": {
+    "app/inbound.py::archive@28": {
+      "key": "app/inbound.py::archive@28",
+      "file": "app/inbound.py",
+      "qualname": "archive",
+      "line": 28,
+      "end_line": 29,
+      "kind": "function",
+      "title": "把这封邮件连同它的全部附件一起归档到冷存储里，并在归档索引里记下原因、时间和处理它的工作进程编号，方便以后审计时按原因…",
+      "is_async": false,
+      "sid": "app/inbound.py::archive",
+      "marked": false,
+      "group": null,
+      "route": null,
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "把这封邮件连同它的全部附件一起归档到冷存储里，并在归档索引里记下原因、时间和处理它的工作进程编号，方便以后审计时按原因…",
+          "sid": "start",
+          "subtitle": "",
+          "line": 28,
+          "end_line": 28,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "end",
+          "title": "执行到函数末尾",
+          "sid": "end:implicit",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [],
+      "unresolved": []
+    },
+    "app/inbound.py::inbound@44": {
+      "key": "app/inbound.py::inbound@44",
+      "file": "app/inbound.py",
+      "qualname": "inbound",
+      "line": 44,
+      "end_line": 64,
+      "kind": "route",
+      "title": "处理 Gmail 推送过来的一封入站邮件：读邮件、检查附件和发件人、按内容类型分别归档，失败时通知账户所有者、记审计日…",
+      "is_async": true,
+      "sid": "app/inbound.py::inbound",
+      "marked": false,
+      "group": null,
+      "route": "POST /inbound",
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "处理 Gmail 推送过来的一封入站邮件：读邮件、检查附件和发件人、按内容类型分别归档，失败时通知账户所有者、记审计日…",
+          "sid": "start",
+          "subtitle": "",
+          "line": 44,
+          "end_line": 44,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "step",
+          "title": "读入站邮件",
+          "sid": "step:483af1d8",
+          "subtitle": "load",
+          "line": 46,
+          "end_line": 46,
+          "calls": [
+            {
+              "name": "load",
+              "target": "app/inbound.py::load@21",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "step",
+          "title": "先看这封邮件是不是已经处理过：同一个 message_id 可能被 Gmail 推送好几次，重复处理会让下游的统计和通…",
+          "sid": "step:af78f1af",
+          "subtitle": "seen_before",
+          "line": 48,
+          "end_line": 48,
+          "calls": [
+            {
+              "name": "seen_before",
+              "target": "app/inbound.py::seen_before@25",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n4",
+          "type": "cond",
+          "title": "message.attachments and message.sender_is_trusted and messa…",
+          "sid": "cond:ea49392c",
+          "subtitle": "message.attachments and message.sender_is_trusted and message.size_in_bytes < 1…",
+          "line": 49,
+          "end_line": 49,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n5",
+          "type": "step",
+          "title": "把这封邮件连同它的全部附件一起归档到冷存储里，并在归档索引里记下原因、时间和处理它的工作进程编号，方便以后审计时按原因…",
+          "sid": "step:d51519ae",
+          "subtitle": "archive",
+          "line": 50,
+          "end_line": 50,
+          "calls": [
+            {
+              "name": "archive",
+              "target": "app/inbound.py::archive@28",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n6",
+          "type": "loop",
+          "title": "for attachment in message.attachments_sorted_by_size_descen…",
+          "sid": "loop:40cd044b",
+          "subtitle": "for attachment in message.attachments_sorted_by_size_descending_and_then_by_fil…",
+          "line": 51,
+          "end_line": 51,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n7",
+          "type": "cond",
+          "title": "match attachment.content_type",
+          "sid": "cond:f50047b1",
+          "subtitle": "match attachment.content_type",
+          "line": 52,
+          "end_line": 52,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n8",
+          "type": "step",
+          "title": "把这封邮件连同它的全部附件一起归档到冷存储里，并在归档索引里记下原因、时间和处理它的工作进程编号，方便以后审计时按原因…",
+          "sid": "step:83341136",
+          "subtitle": "archive",
+          "line": 54,
+          "end_line": 54,
+          "calls": [
+            {
+              "name": "archive",
+              "target": "app/inbound.py::archive@28",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n9",
+          "type": "step",
+          "title": "notify_the_account_owner_about_the_rejected_message + recor…",
+          "sid": "step:c8f01e72",
+          "subtitle": "notify_the_account_owner_about_the_rejected_message + recor…",
+          "line": 58,
+          "end_line": 59,
+          "calls": [
+            {
+              "name": "notify_the_account_owner_about_the_rejected_message",
+              "target": "app/inbound.py::notify_the_account_owner_about_the_rejected_message@32",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            },
+            {
+              "name": "record_the_rejection_in_the_audit_log_for_compliance",
+              "target": "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance@35",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n10",
+          "type": "catch",
+          "title": "捕获 (MailboxQuotaExceededError, AttachmentTooLargeForTheConf…",
+          "sid": "catch:e416d746",
+          "subtitle": "(MailboxQuotaExceededError, AttachmentTooLargeForTheConfiguredLimitError, Upstr…",
+          "line": 60,
+          "end_line": 61,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n11",
+          "type": "step",
+          "title": "把这封邮件连同它的全部附件一起归档到冷存储里，并在归档索引里记下原因、时间和处理它的工作进程编号，方便以后审计时按原因…",
+          "sid": "step:10c64d86",
+          "subtitle": "archive",
+          "line": 62,
+          "end_line": 62,
+          "calls": [
+            {
+              "name": "archive",
+              "target": "app/inbound.py::archive@28",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n12",
+          "type": "end",
+          "title": "抛出 UpstreamAnalysisServiceTemporarilyUnavailableError(\"上游分析…",
+          "sid": "end:81624e55",
+          "subtitle": "",
+          "line": 63,
+          "end_line": 63,
+          "calls": [],
+          "end_kind": "failed",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n13",
+          "type": "end",
+          "title": "返回 {\"message_id\": message_id, \"attachments\": len(message.at…",
+          "sid": "end:ad623ae4",
+          "subtitle": "",
+          "line": 64,
+          "end_line": 64,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n14",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n2",
+          "dst": "n3",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n3",
+          "dst": "n4",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n4",
+          "dst": "n5",
+          "kind": "yes",
+          "label": "",
+          "branch": "yes"
+        },
+        {
+          "src": "n5",
+          "dst": "n6",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n4",
+          "dst": "n6",
+          "kind": "no",
+          "label": "",
+          "branch": "no"
+        },
+        {
+          "src": "n6",
+          "dst": "n7",
+          "kind": "loop_each",
+          "label": ""
+        },
+        {
+          "src": "n7",
+          "dst": "n8",
+          "kind": "case",
+          "label": "{\"kind\": \"invoice\", \"currency\": currency, \"amount\": amount, **rest} if currency…",
+          "branch": "{\"kind\": \"invoice\", \"currency\": currency, \"amount\": amount, **rest} if currency…"
+        },
+        {
+          "src": "n7",
+          "dst": "n6",
+          "kind": "loop_back",
+          "label": "\"text/plain\" | \"text/html\" | \"text/markdown\" | \"text/csv\" | \"application/json\" …",
+          "branch": "\"text/plain\" | \"text/html\" | \"text/markdown\" | \"text/csv\" | \"application/json\" …"
+        },
+        {
+          "src": "n8",
+          "dst": "n6",
+          "kind": "loop_back",
+          "label": ""
+        },
+        {
+          "src": "n7",
+          "dst": "n6",
+          "kind": "loop_back",
+          "label": "都不匹配",
+          "branch": "else"
+        },
+        {
+          "src": "n6",
+          "dst": "n9",
+          "kind": "loop_exit",
+          "label": ""
+        },
+        {
+          "src": "n9",
+          "dst": "n10",
+          "kind": "raise",
+          "label": ""
+        },
+        {
+          "src": "n10",
+          "dst": "n11",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n11",
+          "dst": "n12",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n9",
+          "dst": "n13",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [
+        "app/inbound.py::load@21",
+        "app/inbound.py::seen_before@25",
+        "app/inbound.py::archive@28",
+        "app/inbound.py::notify_the_account_owner_about_the_rejected_message@32",
+        "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance@35"
+      ],
+      "unresolved": [],
+      "rule": "fastapi"
+    },
+    "app/inbound.py::load@21": {
+      "key": "app/inbound.py::load@21",
+      "file": "app/inbound.py",
+      "qualname": "load",
+      "line": 21,
+      "end_line": 22,
+      "kind": "function",
+      "title": "读入站邮件",
+      "is_async": false,
+      "sid": "app/inbound.py::load",
+      "marked": false,
+      "group": null,
+      "route": null,
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "读入站邮件",
+          "sid": "start",
+          "subtitle": "",
+          "line": 21,
+          "end_line": 21,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "end",
+          "title": "执行到函数末尾",
+          "sid": "end:implicit",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [],
+      "unresolved": []
+    },
+    "app/inbound.py::notify_the_account_owner_about_the_rejected_message@32": {
+      "key": "app/inbound.py::notify_the_account_owner_about_the_rejected_message@32",
+      "file": "app/inbound.py",
+      "qualname": "notify_the_account_owner_about_the_rejected_message",
+      "line": 32,
+      "end_line": 32,
+      "kind": "function",
+      "title": "notify_the_account_owner_about_the_rejected_message",
+      "is_async": false,
+      "sid": "app/inbound.py::notify_the_account_owner_about_the_rejected_message",
+      "marked": false,
+      "group": null,
+      "route": null,
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "notify_the_account_owner_about_the_rejected_message",
+          "sid": "start",
+          "subtitle": "",
+          "line": 32,
+          "end_line": 32,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "end",
+          "title": "执行到函数末尾",
+          "sid": "end:implicit",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [],
+      "unresolved": []
+    },
+    "app/inbound.py::ping@39": {
+      "key": "app/inbound.py::ping@39",
+      "file": "app/inbound.py",
+      "qualname": "ping",
+      "line": 39,
+      "end_line": 40,
+      "kind": "route",
+      "title": "ping",
+      "is_async": true,
+      "sid": "app/inbound.py::ping",
+      "marked": false,
+      "group": null,
+      "route": "GET /ping",
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "ping",
+          "sid": "start",
+          "subtitle": "",
+          "line": 39,
+          "end_line": 39,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "step",
+          "title": "读入站邮件",
+          "sid": "step:7873f9fb",
+          "subtitle": "load",
+          "line": 40,
+          "end_line": 40,
+          "calls": [
+            {
+              "name": "load",
+              "target": "app/inbound.py::load@21",
+              "resolution": "exact",
+              "is_dispatch": false,
+              "conditional": false,
+              "dispatches": []
+            }
+          ],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "end",
+          "title": "执行到函数末尾",
+          "sid": "end:implicit",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n4",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        },
+        {
+          "src": "n2",
+          "dst": "n3",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [
+        "app/inbound.py::load@21"
+      ],
+      "unresolved": [],
+      "rule": "fastapi"
+    },
+    "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance@35": {
+      "key": "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance@35",
+      "file": "app/inbound.py",
+      "qualname": "record_the_rejection_in_the_audit_log_for_compliance",
+      "line": 35,
+      "end_line": 35,
+      "kind": "function",
+      "title": "record_the_rejection_in_the_audit_log_for_compliance",
+      "is_async": false,
+      "sid": "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance",
+      "marked": false,
+      "group": null,
+      "route": null,
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "record_the_rejection_in_the_audit_log_for_compliance",
+          "sid": "start",
+          "subtitle": "",
+          "line": 35,
+          "end_line": 35,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "end",
+          "title": "执行到函数末尾",
+          "sid": "end:implicit",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [],
+      "unresolved": []
+    },
+    "app/inbound.py::seen_before@25": {
+      "key": "app/inbound.py::seen_before@25",
+      "file": "app/inbound.py",
+      "qualname": "seen_before",
+      "line": 25,
+      "end_line": 25,
+      "kind": "function",
+      "title": "seen_before",
+      "is_async": false,
+      "sid": "app/inbound.py::seen_before",
+      "marked": false,
+      "group": null,
+      "route": null,
+      "retries": false,
+      "parent": null,
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "start",
+          "title": "seen_before",
+          "sid": "start",
+          "subtitle": "",
+          "line": 25,
+          "end_line": 25,
+          "calls": [],
+          "end_kind": null,
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n2",
+          "type": "end",
+          "title": "执行到函数末尾",
+          "sid": "end:implicit",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "ok",
+          "fields": {},
+          "passthrough": null
+        },
+        {
+          "id": "n3",
+          "type": "end",
+          "title": "未捕获异常退出",
+          "sid": "end:uncaught",
+          "subtitle": "",
+          "line": 0,
+          "end_line": 0,
+          "calls": [],
+          "end_kind": "exception",
+          "fields": {},
+          "passthrough": null
+        }
+      ],
+      "edges": [
+        {
+          "src": "n1",
+          "dst": "n2",
+          "kind": "next",
+          "label": ""
+        }
+      ],
+      "call_targets": [],
+      "unresolved": []
+    }
+  },
+  "lines": [
+    {
+      "id": "app/inbound.py::ping@39",
+      "title": "GET /ping",
+      "group": "inbound",
+      "kind": "route",
+      "root": {
+        "function": "app/inbound.py::ping@39",
+        "goto": false,
+        "children": []
+      },
+      "sid": "line:app/inbound.py::ping"
+    },
+    {
+      "id": "app/inbound.py::inbound@44",
+      "title": "处理 Gmail 推送过来的一封入站邮件：读邮件、检查附件和发件人、按内容类型分别归档，失败时通知账户所有者、记审计日…",
+      "group": "inbound",
+      "kind": "route",
+      "root": {
+        "function": "app/inbound.py::inbound@44",
+        "goto": false,
+        "children": []
+      },
+      "sid": "line:app/inbound.py::inbound"
+    }
+  ],
+  "common_tasks": [],
+  "selfcheck": {
+    "unreachable": [],
+    "dead_ends": [],
+    "unresolved_calls": 0,
+    "guessed_calls": 0,
+    "skipped_files": []
+  },
+  "file_hashes": {
+    "app/inbound.py": "db0d1091af47b9dffa61be4c3379c10d7ae32c136672b146984cabc13925e112"
+  },
+  "sids": {
+    "app/inbound.py::archive": "app/inbound.py::archive@28",
+    "app/inbound.py::inbound": "app/inbound.py::inbound@44",
+    "app/inbound.py::load": "app/inbound.py::load@21",
+    "app/inbound.py::notify_the_account_owner_about_the_rejected_message": "app/inbound.py::notify_the_account_owner_about_the_rejected_message@32",
+    "app/inbound.py::ping": "app/inbound.py::ping@39",
+    "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance": "app/inbound.py::record_the_rejection_in_the_audit_log_for_compliance@35",
+    "app/inbound.py::seen_before": "app/inbound.py::seen_before@25"
+  }
+}

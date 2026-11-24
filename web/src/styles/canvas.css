@@ -1,0 +1,1327 @@
+/* 画布：标题区、节点、连线、地图模式。
+   节点的字号、行高、内边距来自画布根元素上的 CSS 变量（= src/graph/layout.ts 的 METRICS），排版按同样的数字估算尺寸；
+   边框 1px 算在内边距里（padding = METRICS 的值 - 1px），所以 DOM 尺寸和估算的一致。 */
+
+.canvas-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--canvas);
+}
+.canvas-head {
+  padding: 14px 18px 10px;
+  background: #16171b;
+  border-bottom: 1px solid #23252b;
+}
+.head-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.head-title {
+  flex: 1;
+  min-width: 0;
+}
+.head-title h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.head-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.meta-kind {
+  color: var(--task-soft);
+  border: 1px solid #2f4486;
+  border-radius: 4px;
+  padding: 0 5px;
+  line-height: 17px;
+}
+.meta-route,
+.meta-fn {
+  font-family: var(--mono);
+  color: var(--text-soft);
+}
+.meta-sep {
+  width: 1px;
+  height: 12px;
+  background: #34363e;
+}
+.head-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.tabs {
+  display: flex;
+  flex: none;
+  padding: 3px;
+  background: #0f1013;
+  border: 1px solid #26282e;
+  border-radius: 9px;
+}
+.tab {
+  all: unset;
+  font-size: 13px;
+  padding: 5px 16px;
+  border-radius: 6px;
+  color: var(--muted);
+}
+.tab.on {
+  background: #2a2c33;
+  color: var(--text);
+  font-weight: 500;
+}
+.tab.off-idle {
+  cursor: pointer;
+}
+.tab.off-idle:hover {
+  color: var(--text-soft);
+}
+.tab:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 1px;
+}
+/* "运行路径"页签上：正在运行测试时一个蓝点 */
+.tab-running {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border-radius: 50%;
+  background: var(--task);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.zoom-read {
+  font: 12px var(--mono);
+  color: var(--faint);
+  padding: 0 6px 0 4px;
+  min-width: 40px;
+  text-align: right;
+}
+.zoom-read.map {
+  color: var(--decision);
+}
+.canvas-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.canvas-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 10;
+}
+.canvas-overlay.err {
+  color: var(--failed);
+}
+
+/* Vue Flow 的控件 */
+.canvas-wrap .vue-flow__minimap {
+  background: #111216;
+  border: 1px solid #2a2c33;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.canvas-wrap .vue-flow__controls {
+  box-shadow: none;
+  border: 1px solid #2a2c33;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.canvas-wrap .vue-flow__controls-button {
+  background: #1d1e23;
+  border-bottom: 1px solid #2a2c33;
+  fill: var(--text-soft);
+  width: 28px;
+  height: 28px;
+}
+.canvas-wrap .vue-flow__controls-button:hover {
+  background: #2a2c33;
+}
+.canvas-wrap .vue-flow__controls-button svg {
+  fill: var(--text-soft);
+}
+.canvas-wrap .vue-flow__node {
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ 节点 */
+
+.fm-leaf {
+  box-sizing: border-box;
+  position: relative;
+  font-family: var(--sans);
+  color: var(--text);
+}
+.fm-leaf.selected,
+.fm-card.is-closed.selected {
+  outline: 2px solid #eef1ff;
+  outline-offset: 3px;
+}
+/* 展开的卡片很大，选中时只亮标题栏 */
+.fm-card.is-open.selected > .card-head {
+  box-shadow: inset 0 0 0 2px rgba(238, 241, 255, 0.85);
+}
+.fm-leaf.fold-hover {
+  outline: 1.5px dashed var(--task-soft);
+  outline-offset: 3px;
+}
+
+/* 步骤、判断、循环、捕获 */
+.fm-block {
+  display: flex;
+  align-items: flex-start;
+  padding: calc(var(--n-pady) - 1px) calc(var(--n-padx) - 1px);
+  background: #212227;
+  border: 1px solid #34363e;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.fm-block.trunk {
+  background: #2a2b31;
+  border-color: #575a67;
+}
+.fm-block:hover {
+  border-color: #8b8e9a;
+}
+.fm-block .ico {
+  width: var(--n-icon);
+  height: var(--n-title-lh);
+  flex: none;
+  display: flex;
+  align-items: center;
+  color: #858894;
+}
+.fm-block .txt {
+  flex: 1;
+  min-width: 0;
+}
+.fm-block .title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: var(--n-title);
+  line-height: var(--n-title-lh);
+  font-weight: 500;
+  color: var(--text-soft);
+}
+.fm-block.trunk .title {
+  color: #f4f5f8;
+}
+.fm-block .sub {
+  display: flex;
+  align-items: center;
+  gap: var(--chip-gap);
+  height: var(--n-sub-lh);
+  margin-top: 2px;
+}
+.fm-block .code {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: var(--n-sub);
+  line-height: var(--n-sub-lh);
+  color: #8d909c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fm-block .chips {
+  display: flex;
+  flex: none;
+  gap: var(--chip-gap);
+}
+.chip {
+  font-size: var(--chip-font);
+  line-height: 13px;
+  padding: 0 calc(var(--chip-padx) - 1px);
+  border: 1px solid;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.chip-dispatch {
+  color: #b4c8ff;
+  background: #1c2a55;
+  border-color: #3557c4;
+}
+.chip-guessed {
+  color: #f2b860;
+  background: #2a2116;
+  border-style: dashed;
+  border-color: #a37329;
+}
+.chip-unresolved {
+  color: #f19aa8;
+  background: #2a1a1f;
+  border-style: dotted;
+  border-color: #b04a5d;
+}
+
+.fm-block.is-cond {
+  background: #27221a;
+  border-color: #8a6224;
+}
+.fm-block.is-cond.trunk {
+  background: #2e281d;
+  border-color: #c88b30;
+}
+.fm-block.is-cond .ico {
+  color: var(--decision);
+}
+.fm-block.is-loop {
+  background: #1b2726;
+  border-color: #1f6b62;
+}
+.fm-block.is-loop.trunk {
+  border-color: #2a9a8c;
+}
+.fm-block.is-loop .ico {
+  color: var(--loop);
+}
+.fm-block.is-catch {
+  background: #291a25;
+  border-color: #7d2e5e;
+}
+.fm-block.is-catch .ico {
+  color: var(--catch);
+}
+
+/* 钻入按钮（占类型图标的位置） */
+.ico-btn {
+  all: unset;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin-left: -1px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  color: var(--task-soft);
+  cursor: pointer;
+}
+.ico-btn:hover {
+  background: #2a3b6e;
+  color: #fff;
+}
+.ico-btn:focus-visible {
+  outline: 2px solid var(--task-soft);
+}
+
+/* 已展开的折叠区域：入口节点左上角的"收起" */
+.collapse-btn {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #2a2c33;
+  border: 1px solid #7a7d8a;
+  color: var(--text);
+  cursor: pointer;
+}
+.collapse-btn:hover,
+.collapse-btn:focus-visible {
+  background: var(--task);
+  border-color: var(--task-soft);
+  color: #fff;
+}
+
+/* 开始、结局：胶囊 */
+.fm-pill {
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--p-padx) - 1px);
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: var(--p-font);
+  cursor: pointer;
+}
+.pill-ico {
+  width: var(--p-icon);
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.pill-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.fm-pill.is-start {
+  background: #050506;
+  border-color: #3a3c45;
+  color: #f4f5f8;
+}
+.fm-pill.is-start .pill-ico {
+  color: var(--task);
+}
+.fm-pill.end-ok {
+  background: #12291b;
+  border-color: #2f9e60;
+  color: #a3f2c4;
+}
+.fm-pill.end-ok .pill-ico {
+  color: var(--ok);
+}
+.fm-pill.end-skipped {
+  background: #23252b;
+  border-color: #6c7282;
+  color: #cfd3dc;
+}
+.fm-pill.end-skipped .pill-ico {
+  color: var(--skipped);
+}
+.fm-pill.end-failed {
+  background: #2e1618;
+  border-color: #b84444;
+  color: #ffb8b5;
+}
+.fm-pill.end-failed .pill-ico {
+  color: var(--failed);
+}
+.fm-pill.end-exception {
+  background: #271731;
+  border-color: #8f55bb;
+  color: #e6cbfb;
+}
+.fm-pill.end-exception .pill-ico {
+  color: var(--exception);
+}
+.fm-pill.implicit {
+  border-style: dashed;
+}
+
+/* 折叠占位 */
+.fm-fold {
+  display: flex;
+  align-items: flex-start;
+  padding: calc(var(--f-pady) - 1px) calc(var(--f-padx) - 1px);
+  background: #18191d;
+  border: 1px dashed #6b6e7a;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.fm-fold.trunk {
+  border-color: #b4b8c4;
+}
+.fm-fold:hover,
+.fm-fold:focus-visible {
+  border-color: var(--task-soft);
+  background: #1b2135;
+}
+.fm-fold .ends-bar {
+  position: absolute;
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fm-fold .ends-bar span {
+  flex: 1;
+  border-radius: 0 2px 2px 0;
+}
+.fm-fold .ico {
+  width: var(--f-icon);
+  height: var(--f-lh);
+  flex: none;
+  display: flex;
+  align-items: center;
+  color: var(--task-soft);
+}
+.fm-fold .txt {
+  flex: 1;
+  min-width: 0;
+}
+.fm-fold .headline {
+  font-size: var(--f-font);
+  line-height: var(--f-lh);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fm-fold .detail {
+  display: flex;
+  align-items: center;
+  gap: var(--chip-gap);
+  height: var(--f-sub-lh);
+  font-size: var(--f-sub);
+  line-height: var(--f-sub-lh);
+  color: var(--muted);
+}
+.fm-fold .dtext {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fm-fold .chips {
+  display: flex;
+  flex: none;
+  gap: var(--chip-gap);
+}
+.fold-tip {
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.fold-tip b {
+  font-weight: 600;
+}
+.fold-tip .tip-hint {
+  color: var(--muted);
+  margin-top: 4px;
+}
+.fold-tip .tip-diff {
+  color: var(--decision);
+}
+
+/* 任务卡片、钻入卡片、goto */
+.fm-card {
+  box-sizing: border-box;
+  position: relative;
+  border-radius: 12px;
+  font-family: var(--sans);
+}
+.fm-card .card-head {
+  position: relative;
+  box-sizing: border-box;
+  padding: calc(var(--c-pady) - 1px) calc(var(--c-padx) - 1px);
+  cursor: pointer;
+}
+.fm-card.is-closed .card-head {
+  height: 100%;
+  border-radius: 11px;
+}
+.card-title {
+  font-size: var(--c-title);
+  line-height: var(--c-title-lh);
+  font-weight: 600;
+  color: #f2f4ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-sub {
+  font-family: var(--mono);
+  font-size: var(--c-sub);
+  line-height: var(--c-sub-lh);
+  color: #95a5d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-sum {
+  font-size: var(--c-sub);
+  line-height: var(--c-sub-lh);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-chev {
+  position: absolute;
+  right: 2px;
+  top: calc(var(--c-pady) + 3px);
+  color: var(--task-soft);
+}
+.fm-card.k-task.is-open {
+  background: rgba(76, 125, 255, 0.04);
+  border: 1px solid rgba(76, 125, 255, 0.42);
+}
+.fm-card.k-task.is-open.root {
+  border-color: rgba(76, 125, 255, 0.7);
+}
+.fm-card.k-task.is-open > .card-head {
+  background: rgba(76, 125, 255, 0.13);
+  border-bottom: 1px solid rgba(76, 125, 255, 0.3);
+  border-radius: 11px 11px 0 0;
+}
+.fm-card.k-task.is-closed {
+  background: #172040;
+  border: 1px solid #3557c4;
+}
+.fm-card.k-task.flat {
+  background: #1d1f25;
+  border-color: #3a3c45;
+}
+.fm-card.k-task.flat .card-head {
+  cursor: default;
+}
+.fm-card.k-task .card-head:hover {
+  background-color: rgba(76, 125, 255, 0.2);
+}
+.fm-card.k-goto {
+  background: rgba(23, 26, 38, 0.9);
+  border: 1px dashed #4a64b5;
+}
+.fm-card.k-goto .card-title {
+  color: #c5cff0;
+  font-weight: 500;
+}
+.fm-card.k-goto .card-head:hover {
+  background: rgba(76, 125, 255, 0.14);
+}
+.fm-card.k-drill {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px dashed #6b6e7a;
+}
+.fm-card.k-drill > .card-head {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px dashed #4a4d58;
+  border-radius: 11px 11px 0 0;
+}
+.fm-card.k-drill .card-sub {
+  color: #a9adb9;
+}
+.fm-card.k-drill .card-head:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.fm-card.flash {
+  animation: fm-flash 1.9s ease-out;
+}
+@keyframes fm-flash {
+  0%,
+  65% {
+    box-shadow: 0 0 0 5px var(--decision);
+  }
+  100% {
+    box-shadow: 0 0 0 5px rgba(232, 161, 58, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fm-card.flash {
+    animation: none;
+    box-shadow: 0 0 0 5px var(--decision);
+  }
+}
+
+/* ------------------------------------------------------------------ 连线 */
+
+.fm-edge .line {
+  fill: none;
+  stroke: #646775;
+  stroke-width: calc(1.3px * var(--sz, 1));
+  stroke-linejoin: round;
+}
+.fm-edge .head {
+  fill: #646775;
+  transform: scale(var(--sz, 1));
+}
+.fm-edge.trunk .line {
+  stroke: #cfd2db;
+  stroke-width: calc(2.4px * var(--sz, 1));
+}
+.fm-edge.trunk .head {
+  fill: #cfd2db;
+}
+.fm-edge.k-loop_back .line {
+  stroke: var(--loop);
+  stroke-width: calc(1.5px * var(--sz, 1));
+}
+.fm-edge.k-loop_back .head {
+  fill: var(--loop);
+}
+.fm-edge.k-raise .line {
+  stroke: var(--catch);
+  stroke-width: calc(1.4px * var(--sz, 1));
+  stroke-dasharray: calc(5px * var(--sz, 1)) calc(4px * var(--sz, 1));
+}
+.fm-edge.k-raise .head {
+  fill: var(--catch);
+}
+.fm-edge.k-finally .line {
+  stroke: var(--finally);
+  stroke-width: calc(1.5px * var(--sz, 1));
+  stroke-dasharray: calc(2px * var(--sz, 1)) calc(3.5px * var(--sz, 1));
+}
+.fm-edge.k-finally .head {
+  fill: var(--finally);
+}
+.fm-edge.is-link .line {
+  stroke: var(--task);
+  stroke-width: calc(1.8px * var(--sz, 1));
+  stroke-dasharray: calc(8px * var(--sz, 1)) calc(5px * var(--sz, 1));
+  opacity: 0.85;
+}
+.fm-edge.is-link .head {
+  fill: var(--task);
+}
+.fm-edge.is-link.res-guessed .line {
+  stroke: var(--decision);
+}
+.fm-edge.is-link.res-guessed .head {
+  fill: var(--decision);
+}
+.fm-edge.is-link.res-unresolved .line {
+  stroke: #8b8e9a;
+}
+.fm-edge.is-link.res-unresolved .head {
+  fill: #8b8e9a;
+}
+
+/* 分支标签 */
+.fm-edge .lbl rect {
+  stroke-width: 1;
+}
+/* 被引擎截断的 case 模式：悬停看全文（连线本身不接收鼠标） */
+.fm-edge .lbl.has-full {
+  pointer-events: auto;
+  cursor: default;
+}
+.fm-edge .lbl text {
+  font-family: var(--sans);
+  font-size: var(--l-font);
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.tone-yes rect {
+  fill: #12291b;
+  stroke: #2f7d4f;
+}
+.tone-yes text {
+  fill: #8ce8b3;
+}
+.tone-no rect {
+  fill: #2e1618;
+  stroke: #8f3a3a;
+}
+.tone-no text {
+  fill: #ffa8a5;
+}
+.tone-case rect {
+  fill: #2a2316;
+  stroke: #8a6424;
+}
+.tone-case text {
+  fill: #f2c477;
+}
+.tone-else rect {
+  fill: #23252b;
+  stroke: #4a4d58;
+}
+.tone-else text {
+  fill: #c3c7d1;
+}
+.tone-loop rect {
+  fill: #152827;
+  stroke: #23786e;
+}
+.tone-loop text {
+  fill: #7fe0d4;
+}
+
+/* ------------------------------------------------------------------ 地图模式（缩得很小） */
+
+.fm-map .fm-leaf .txt,
+.fm-map .fm-leaf .ico,
+.fm-map .fm-pill .pill-text,
+.fm-map .fm-pill .pill-ico,
+.fm-map .collapse-btn,
+.fm-map .fm-fold .ends-bar,
+.fm-map .fm-card .card-head > * {
+  visibility: hidden;
+}
+.fm-map .fm-edge .lbl {
+  display: none;
+}
+.fm-map .fm-block {
+  background: #4b4f5c;
+  border-color: transparent;
+}
+.fm-map .fm-block.trunk {
+  background: #a2a6b3;
+}
+.fm-map .fm-block.is-cond {
+  background: var(--decision);
+}
+.fm-map .fm-block.is-loop {
+  background: var(--loop);
+}
+.fm-map .fm-block.is-catch {
+  background: var(--catch);
+}
+.fm-map .fm-pill.is-start {
+  background: #f4f5f8;
+}
+.fm-map .fm-pill.end-ok {
+  background: var(--ok);
+}
+.fm-map .fm-pill.end-skipped {
+  background: var(--skipped);
+}
+.fm-map .fm-pill.end-failed {
+  background: var(--failed);
+}
+.fm-map .fm-pill.end-exception {
+  background: var(--exception);
+}
+/* 地图模式的折叠占位：按里面最严重的结局上色（未捕获异常 > 失败 > 跳过 > 正常，foldTint），提前失败的分支一眼看得出来 */
+.fm-map .fm-fold {
+  background: color-mix(in srgb, var(--fold-tint) 38%, #1d1e23);
+  border: calc(1px * var(--sz, 1)) dashed color-mix(in srgb, var(--fold-tint) 70%, #ffffff);
+}
+.fm-map .fm-card.k-task.is-closed {
+  background: #3054c8;
+}
+.fm-map .fm-card.k-task.is-open > .card-head {
+  background: rgba(76, 125, 255, 0.4);
+}
+
+/* 地图模式的卡片标题（屏幕坐标，字号固定） */
+.fm-maplabels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 4;
+}
+.fm-maplabels-pane {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.maplabel {
+  all: unset;
+  position: absolute;
+  box-sizing: border-box;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #7194ff;
+  background: #2546b0;
+  color: #fff;
+  font-family: var(--sans);
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.maplabel.ml-open {
+  background: rgba(17, 21, 36, 0.94);
+  border-color: var(--task);
+  color: #e3e9ff;
+}
+.maplabel.ml-goto {
+  background: rgba(17, 19, 30, 0.94);
+  border: 1px dashed #5a74c4;
+  color: #b4c2ef;
+  font-weight: 500;
+}
+.maplabel.ml-drill {
+  background: #24262d;
+  border-color: #7a7d8a;
+}
+.maplabel:hover,
+.maplabel:focus-visible {
+  border-color: #fff;
+}
+
+/* 键盘焦点 */
+.fm-leaf:focus-visible,
+.fm-card .card-head:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ 流程变化（和对比基准比）
+   颜色只用现有的语义色：新增 = 成功绿（--ok），改动 = 警告琥珀（--decision）（theme.ts 的 DIFF_COLOR）。
+   变化一律画成外圈：box-shadow 画在边框外面，中间隔一道画布色——不改 DOM 尺寸（排版按 METRICS 估算的尺寸），不和
+   选中（outline）、"收起这段"的虚线框（outline）打架，琥珀色的判断节点、绿色的正常结局外面的圈也分得出来；节点
+   本身的底色仍按类型（地图模式、小地图里也是）。角标画在节点 / 卡片的上边框外面（右上角），不盖住标题；数字角标在
+   右下角（步骤：钻入后能看到几处变化）或右上角（折叠着的卡片、分支：里面几处变化）。这段放在最后，同样权重的规则
+   以它为准。--ring 是外圈的粗细，地图模式里随缩放加粗。 */
+
+.canvas-wrap {
+  --ring: 2px;
+}
+.fm-map {
+  --ring: calc(3px * var(--sz, 1));
+}
+.fm-leaf.mark-added,
+.fm-card.has-added {
+  box-shadow:
+    0 0 0 var(--ring) var(--canvas),
+    0 0 0 calc(var(--ring) * 2) var(--ok);
+}
+.fm-leaf.mark-changed,
+.fm-card.k-task.is-closed.has-change,
+.fm-fold-box.has-change .fm-fold {
+  box-shadow:
+    0 0 0 var(--ring) var(--canvas),
+    0 0 0 calc(var(--ring) * 2) var(--decision);
+}
+.fm-mark,
+.fm-count {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  height: 15px;
+  padding: 0 5px;
+  border-radius: 8px;
+  font: 600 10px/15px var(--sans);
+  color: #0b0c0e;
+  white-space: nowrap;
+  cursor: default;
+  pointer-events: auto;
+}
+.fm-mark {
+  top: -10px;
+  right: 10px;
+}
+.fm-mark.fm-mark-added {
+  background: var(--ok);
+}
+.fm-mark.fm-mark-changed {
+  background: var(--decision);
+}
+.fm-count {
+  min-width: 15px;
+  text-align: center;
+  background: var(--decision);
+}
+.fm-count.at-corner {
+  top: -8px;
+  right: -8px;
+}
+.fm-count.at-bottom {
+  bottom: -8px;
+  right: -8px;
+}
+/* 卡片：右上角是数字，"新增"往左让一让 */
+.fm-card > .fm-mark {
+  right: 22px;
+}
+/* 折叠占位自己 overflow: hidden，角标放在外面一层；点角标和点占位一样是展开 */
+.fm-fold-box {
+  position: relative;
+}
+.fm-fold-box > .fm-count,
+.fm-card > .fm-count {
+  cursor: pointer;
+}
+
+.fm-edge.diff-added .line {
+  stroke: var(--ok);
+}
+.fm-edge.diff-added .head {
+  fill: var(--ok);
+}
+
+/* 地图模式：角标太小看不清，只留外圈（--ring 随缩放加粗） */
+.fm-map .fm-mark,
+.fm-map .fm-count {
+  visibility: hidden;
+}
+
+/* 画布上方的过期条、差异栏共用 */
+.bar-gap {
+  flex: 1;
+}
+.bar-link {
+  all: unset;
+  flex: none;
+  cursor: pointer;
+  color: var(--text-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bar-link:hover {
+  color: var(--text);
+}
+.bar-link:focus-visible {
+  outline: 2px solid var(--task-soft);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ 运行路径（"运行路径"页签，runstate.ts 的 canvasRunMarks）
+   只在运行路径页签里出现（流程设计页签里 canvasRunMarks 是空的，这些 class 都不会挂上）。颜色只用现有的语义色：
+   走过 = 钴蓝（--task / --task-soft，同任务卡片、派发），失败的停点 = 失败红，没走到的结局 = 失败红虚线框，对不上的
+   = 灰虚线框。都画在节点外面（伪元素、外圈），不改 DOM 尺寸，不重新排版。 */
+
+/* 走过的节点：左边一条蓝色竖条，正常亮度 */
+.fm-leaf.run-walked::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--task);
+  pointer-events: none;
+}
+/* 没走到的节点、折叠占位、没执行过的卡片、没走过的连线：变暗 */
+.fm-leaf.run-dim,
+.fm-fold-box.run-dim,
+.fm-card.run-dim {
+  opacity: 0.32;
+}
+.fm-edge.run-dim {
+  opacity: 0.22;
+}
+/* 运行中（测试命令还在跑）：只知道走到过哪些节点，不知道走的是哪条连线——连线都半亮 */
+.fm-edge.run-live {
+  opacity: 0.5;
+}
+/* 走过的连线：蓝色加粗（虚线的异常、收尾连线保持虚线） */
+.fm-edge.run-walked .line {
+  stroke: var(--task);
+  stroke-width: calc(2.6px * var(--sz, 1));
+  opacity: 1;
+}
+.fm-edge.run-walked .head {
+  fill: var(--task);
+}
+.fm-edge .run-count rect {
+  fill: #172040;
+  stroke: var(--task);
+  stroke-width: 1;
+}
+.fm-edge .run-count text {
+  fill: var(--task-soft);
+  font: 600 10px var(--sans);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+/* 角上的耗时 / 次数（同流程差异的角标位置，那些在这个页签里不显示） */
+.fm-run-badge {
+  position: absolute;
+  z-index: 2;
+  top: -9px;
+  right: 8px;
+  box-sizing: border-box;
+  height: 15px;
+  padding: 0 5px;
+  border-radius: 8px;
+  font: 600 10px/13px var(--sans);
+  color: var(--task-soft);
+  background: #172040;
+  border: 1px solid var(--task);
+  white-space: nowrap;
+  cursor: default;
+  pointer-events: auto;
+}
+/* 收起的卡片、折叠占位里有走过的节点：左上角一个蓝点 */
+.fm-card.run-inside::before,
+.fm-fold-box.run-inside::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: -4px;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--task);
+  box-shadow: 0 0 0 2px var(--canvas);
+  pointer-events: none;
+}
+/* 回放正走到这里：亮蓝外圈加一点光晕（只在回放时，回放完换回正常的样子） */
+.fm-leaf.run-current,
+.fm-card.run-current,
+.fm-fold-box.run-current .fm-fold {
+  box-shadow:
+    0 0 0 var(--ring) var(--canvas),
+    0 0 0 calc(var(--ring) * 2) var(--task-soft),
+    0 0 16px 3px color-mix(in srgb, var(--task) 60%, transparent);
+}
+/* 失败的测试停在这里：红色外圈 */
+.fm-leaf.run-stop,
+.fm-card.run-stop,
+.fm-fold-box.run-stop .fm-fold {
+  box-shadow:
+    0 0 0 var(--ring) var(--canvas),
+    0 0 0 calc(var(--ring) * 2) var(--failed);
+}
+/* 没有测试走到的结局：红色虚线框；运行之后代码改过、对不上的：灰色虚线框 */
+.fm-leaf.run-uncovered::after,
+.fm-leaf.run-uncertain::after,
+.fm-card.run-uncovered::after,
+.fm-card.run-uncertain::after,
+.fm-fold-box.run-uncovered::after,
+.fm-fold-box.run-uncertain::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 2.5px dashed var(--failed);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--failed) 10%, transparent);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--failed) 45%, transparent);
+  animation: fm-unc-pulse 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+/* 上面写一句"没有测试走到"（对不上的写"不确定"），远看也认得出 */
+.fm-leaf.run-uncovered::before,
+.fm-leaf.run-uncertain::before,
+.fm-card.run-uncovered::before,
+.fm-card.run-uncertain::before,
+.fm-fold-box.run-uncovered::before,
+.fm-fold-box.run-uncertain::before {
+  content: '没有测试走到';
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: -27px;
+  transform: translateX(-50%);
+  padding: 1px 8px;
+  border-radius: 9px;
+  white-space: nowrap;
+  font: 600 11px/16px var(--sans);
+  color: #1a0b0b;
+  background: var(--failed);
+  pointer-events: none;
+}
+.fm-leaf.run-uncertain::before,
+.fm-card.run-uncertain::before,
+.fm-fold-box.run-uncertain::before {
+  content: '不确定有没有走到';
+  color: var(--canvas);
+  background: var(--muted);
+}
+@keyframes fm-unc-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px 0 color-mix(in srgb, var(--failed) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 18px 4px color-mix(in srgb, var(--failed) 70%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fm-leaf.run-uncovered::after,
+  .fm-card.run-uncovered::after,
+  .fm-fold-box.run-uncovered::after {
+    animation: none;
+  }
+}
+.fm-leaf.fm-pill.run-uncovered::after,
+.fm-leaf.fm-pill.run-uncertain::after {
+  border-radius: 999px;
+}
+.fm-leaf.run-uncertain::after,
+.fm-card.run-uncertain::after,
+.fm-fold-box.run-uncertain::after {
+  border-color: var(--muted);
+  background: none;
+  box-shadow: none;
+  animation: none;
+}
+.fold-tip .tip-run {
+  color: var(--task-soft);
+}
+.fold-tip .tip-stop {
+  color: var(--failed);
+}
+/* 调用处、折叠占位、收起的卡片：里面（它调用的函数里）有几个没走到的结局（悬停有说明） */
+.fm-run-unc {
+  position: absolute;
+  z-index: 2;
+  bottom: -8px;
+  right: -8px;
+  box-sizing: border-box;
+  min-width: 20px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 10px;
+  text-align: center;
+  font: 700 12px/17px var(--sans);
+  color: #1a0b0b;
+  background: var(--failed);
+  border: 1px solid var(--failed);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--failed) 60%, transparent);
+  cursor: default;
+  pointer-events: auto;
+}
+.fm-fold-box > .fm-run-unc,
+.fm-card > .fm-run-unc {
+  top: -8px;
+  bottom: auto;
+  cursor: pointer;
+}
+.fm-run-unc.unsure {
+  color: var(--muted);
+  border-color: var(--muted);
+}
+/* 地图模式：角标、次数太小看不清，只留竖条、外圈、虚线框和变暗 */
+.fm-map .fm-run-badge,
+.fm-map .fm-run-unc,
+.fm-map .fm-edge .run-count {
+  visibility: hidden;
+}
+
+/* 需求的设计图：和实现对不上的节点（state.ts 的 reqMarks，requirements.ts 的 reqViewMarks）。沿用"没有测试走到"的
+   样子——外面一圈虚线框、上方一句话，远看也认得出；不改 DOM 尺寸。设计里有、实现里没有的（还没有实现）红色；结局的
+   分类不一样、走向不一致琥珀色（同流程差异的"改动"）。看需求时"运行路径"的标注不出现，伪元素不会打架。 */
+.fm-leaf.req-missing::after,
+.fm-leaf.req-kind::after,
+.fm-leaf.req-order::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 2.5px dashed var(--failed);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--failed) 9%, transparent);
+  pointer-events: none;
+}
+.fm-leaf.req-kind::after,
+.fm-leaf.req-order::after {
+  border-color: var(--decision);
+  background: color-mix(in srgb, var(--decision) 9%, transparent);
+}
+.fm-leaf.fm-pill.req-missing::after,
+.fm-leaf.fm-pill.req-kind::after,
+.fm-leaf.fm-pill.req-order::after {
+  border-radius: 999px;
+}
+/* 那句话骑在虚线框的上边上、靠右（同"新增""改动"角标的位置）：上下挨得近的节点之间也不盖住别的节点 */
+.fm-leaf.req-missing::before,
+.fm-leaf.req-kind::before,
+.fm-leaf.req-order::before {
+  content: attr(data-req-label);
+  position: absolute;
+  z-index: 3;
+  right: 4px;
+  top: -16px;
+  padding: 0 7px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font: 600 10.5px/16px var(--sans);
+  color: #1a0b0b;
+  background: var(--failed);
+  box-shadow: 0 0 0 2px var(--canvas);
+  pointer-events: none;
+}
+.fm-leaf.req-kind::before,
+.fm-leaf.req-order::before {
+  color: #1d1406;
+  background: var(--decision);
+}
+/* 折叠着的分支里有对不上的节点：红色数字（点开看） */
+.fm-count.req-count {
+  color: #1a0b0b;
+  background: var(--failed);
+}
+/* 地图模式：字太小，只留虚线框 */
+.fm-map .fm-leaf.req-missing::before,
+.fm-map .fm-leaf.req-kind::before,
+.fm-map .fm-leaf.req-order::before {
+  visibility: hidden;
+}
+
+/* 钻入卡片标题栏上的"再展开 N 个"：原来的步骤还调用了没展开的函数时，下拉选一个加到钻入链上。宽度由排版留出
+   （layout.ts 的 cardMoreWidth：离卡片右边 20px，让开收起的小箭头；标题在它左边截断） */
+.card-more {
+  all: unset;
+  position: absolute;
+  top: calc(var(--c-pady) - 1px);
+  right: 20px;
+  padding: 0 7px;
+  border-radius: 9px;
+  font: 500 11px/18px var(--sans);
+  color: var(--task-soft);
+  background: color-mix(in srgb, var(--task) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--task) 45%, transparent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.card-more:hover,
+.card-more:focus-visible {
+  color: var(--text);
+  background: color-mix(in srgb, var(--task) 32%, transparent);
+}
+/* 没展开的函数里有流程变化：琥珀色；失败停在里面：红色外圈；有没走到的结局：红色虚线边 */
+.card-more.has-change {
+  border-color: var(--decision);
+}
+.card-more.run-stop {
+  box-shadow: 0 0 0 2px var(--failed);
+}
+.card-more.run-unc {
+  border: 1px dashed var(--failed);
+}
+.card-more.run-unc.unsure {
+  border-color: var(--muted);
+}
+.card-more .more-n {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  box-sizing: border-box;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  text-align: center;
+  font: 600 10px/15px var(--sans);
+  color: #0b0c0e;
+  background: var(--decision);
+}
+.card-more .more-n.unc {
+  top: auto;
+  bottom: -8px;
+  background: var(--failed);
+  color: #1a0b0b;
+}
+.card-more.unsure .more-n.unc {
+  background: var(--muted);
+}
+.fm-map .card-more {
+  visibility: hidden;
+}
+
+/* 钻入链：同一个步骤的相邻两张钻入卡片之间的细线（不是图里的连线，不标走过、新增；悬停时说按什么先后排） */
+.fm-edge.chain .line {
+  stroke: #7d808c;
+  stroke-width: calc(1px * var(--sz, 1));
+  stroke-dasharray: calc(2px * var(--sz, 1)) calc(3px * var(--sz, 1));
+}
+.fm-edge.chain .hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 10px;
+  pointer-events: stroke;
+  cursor: default;
+}

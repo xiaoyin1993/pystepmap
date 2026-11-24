@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.superpowers/
+.ruff_cache/
+.claude/settings.local.json
+# 从 .mcp.json.example 复制出来的本机配置：不要提交（见 README「在 Claude Code 里使用」）
+.mcp.json
+# 只留在本机、不进 git 的东西（试验代码等）
+local/

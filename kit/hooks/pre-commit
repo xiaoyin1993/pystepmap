@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""git 提交前检查：按暂存区里的内容运行流程约束检查，有违规或解析不了就拒绝提交。
+
+启用（在仓库根目录运行一次，只改本仓库的设置）：
+
+    git config core.hooksPath kit/hooks
+
+判定的是"这次提交之后仓库里会是什么"，不是工作区：
+
+- 暂存区里没有任何 .py 改动（新增、修改、删除、改名都算）：直接放行，不运行检查器；
+- 否则把整个暂存区导出到一个临时目录（git checkout-index -a），对它运行 pystepmap check，不限定文件。这样
+  暂存了违规、工作区里改好了却没有重新 git add 的，会被拒绝；违规只在工作区、没有暂存的，不影响这次提交；
+  只改了 steps.py（去掉一个 @step）而违规出现在没改动的编排文件里的，也会被拒绝。
+- 输出里的路径都是相对仓库根的；临时目录在任何情况下都会删掉。
+- 暂存区里的 .py 符号链接按原样导出：指向仓库之外的、指向仓库里文件的绝对路径链接（在导出目录里它指向导出目录
+  之外）、指向非 .py 文件的，检查器都不读，只在警告里列出，不拦提交（拦提交的只有违规和真的解析不了的文件）。
+
+检查器命令：环境变量 PYSTEPMAP_HOOK_CMD（按 shell 规则拆分），默认 uv run pystepmap；PATH 上没有 uv 时用本仓库
+.venv/bin/pystepmap。检查器没法运行时也拒绝提交，并说明原因。只用标准库，兼容 macOS 自带的 python3（3.9）。
+"""
+
+from __future__ import annotations
+
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+NAME = "提交前的流程约束检查"
+
+
+def git(*args: str, cwd: Path | None = None) -> bytes:
+    r = subprocess.run(["git", *args], cwd=None if cwd is None else str(cwd), stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE, check=False)
+    if r.returncode != 0:
+        raise SystemExit(f"{NAME}：git {' '.join(args)} 失败：{r.stderr.decode('utf-8', 'replace').strip()}")
+    return r.stdout
+
+
+def checker_command(root: Path) -> list[str]:
+    custom = os.environ.get("PYSTEPMAP_HOOK_CMD")
+    if custom:
+        return shlex.split(custom)
+    if shutil.which("uv"):
+        return ["uv", "run", "pystepmap"]
+    venv = root / ".venv" / "bin" / "pystepmap"
+    if os.access(str(venv), os.X_OK):
+        return [str(venv)]
+    raise SystemExit(f"{NAME}：找不到 uv（也没有 .venv/bin/pystepmap），没法检查。请先安装 uv 并在仓库根目录运行 uv sync")
+
+
+def staged_python_change(root: Path) -> bool:
+    """暂存区相对 HEAD 有没有改到 .py 文件（--no-renames：改名算删除旧名加新增新名）。"""
+    names = git("diff", "--cached", "--name-only", "--no-renames", "-z", cwd=root).split(b"\0")
+    return any(os.fsdecode(n).endswith(".py") for n in names if n)
+
+
+def main() -> int:
+    root = Path(os.fsdecode(git("rev-parse", "--show-toplevel").rstrip(b"\n")))
+    if not staged_python_change(root):
+        return 0
+    checker = checker_command(root)
+    export = tempfile.mkdtemp(prefix="pystepmap-precommit-")
+    try:
+        # 导出暂存区（GIT_INDEX_FILE 设了时导出的是它，git commit <路径> 用的就是这种临时索引）
+        git("checkout-index", "-a", f"--prefix={export}{os.sep}", cwd=root)
+        try:
+            r = subprocess.run([*checker, "check", export], cwd=str(root), stdin=subprocess.DEVNULL,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        except OSError as e:
+            print(f"{NAME}：没法运行检查器 {shlex.join(checker)}：{e.strerror or e}", file=sys.stderr)
+            print("请先安装 uv 并在仓库根目录运行 uv sync；提交没有完成", file=sys.stderr)
+            return 1
+        if r.returncode == 0:
+            return 0
+        out = (r.stdout + r.stderr).decode("utf-8", "replace").rstrip()
+        for prefix in {export, os.path.realpath(export)}:  # 临时目录里的路径换回相对仓库根的路径
+            out = out.replace(prefix + os.sep, "").replace(prefix, "（暂存区）")
+        print(f"{NAME}没有通过（退出码 {r.returncode}），提交没有完成。检查的是暂存区里的整个仓库（包括这次提交没有改到的文件）："
+              "请按 flow-style 修改，重新 git add 后再提交：", file=sys.stderr)
+        print(out, file=sys.stderr)
+        return 1
+    finally:
+        shutil.rmtree(export, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

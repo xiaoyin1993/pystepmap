@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 阶段 3 的静态图目录已经不用了（图由平台后端提供）。按老习惯在这里生成的图是别的项目的内容，不能提交。
+public/graphs/

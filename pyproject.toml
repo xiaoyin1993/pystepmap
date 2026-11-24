@@ -1,0 +1,22 @@
+[project]
+name = "pystepmap-workspace"
+version = "0.0.0"
+requires-python = ">=3.12"
+license = "MIT"
+
+[dependency-groups]
+dev = ["pytest", "ruff", "httpx2", "pystepmap-core", "pystepkit", "pystepmap-server"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["core", "kit/pystepkit", "server"]
+
+[tool.uv.sources]
+pystepmap-core = { workspace = true }
+pystepkit = { workspace = true }
+pystepmap-server = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["core/tests", "kit/pystepkit/tests", "kit/tests", "server/tests"]

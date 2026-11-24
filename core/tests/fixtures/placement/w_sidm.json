@@ -1,0 +1,174 @@
+{
+ "name": "w_sidm",
+ "about": "同 w_sid，但重新分析时只改了格式和注释（形状不变）：按相等全部配上",
+ "graphs": {
+  "g1": {
+   "wf.py::W.run@6": {
+    "sid": "wf.py::W.run",
+    "file": "wf.py",
+    "qualname": "W.run",
+    "line": 6,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "cond:4389522b"
+     ],
+     [
+      "n3",
+      "end:6b056bb6"
+     ],
+     [
+      "n4",
+      "cond:de0a595d"
+     ],
+     [
+      "n5",
+      "end:6b056bb6#2"
+     ],
+     [
+      "n6",
+      "end:06d3d9b2"
+     ],
+     [
+      "n7",
+      "end:uncaught"
+     ]
+    ]
+   }
+  },
+  "g2": {
+   "wf.py::W.run@10": {
+    "sid": "wf.py::W.run",
+    "file": "wf.py",
+    "qualname": "W.run",
+    "line": 10,
+    "nodes": [
+     [
+      "n1",
+      "start"
+     ],
+     [
+      "n2",
+      "cond:4389522b"
+     ],
+     [
+      "n3",
+      "end:6b056bb6"
+     ],
+     [
+      "n4",
+      "cond:de0a595d"
+     ],
+     [
+      "n5",
+      "end:6b056bb6#2"
+     ],
+     [
+      "n6",
+      "end:06d3d9b2"
+     ],
+     [
+      "n7",
+      "end:uncaught"
+     ]
+    ]
+   }
+  }
+ },
+ "run": {
+  "version": 1,
+  "tests": [
+   {
+    "test": "tests/test_w.py::test_w",
+    "outcome": "passed",
+    "seconds": 0.00017,
+    "cases": 1,
+    "functions": {
+     "wf.py::W.run": {
+      "function": "wf.py::W.run",
+      "executions": 2,
+      "nodes": {
+       "start": {
+        "visits": 2,
+        "ns": 0
+       },
+       "cond:4389522b": {
+        "visits": 2,
+        "ns": 1417
+       },
+       "cond:de0a595d": {
+        "visits": 2,
+        "ns": 708
+       },
+       "end:6b056bb6#2": {
+        "visits": 1,
+        "ns": 1084
+       },
+       "end:06d3d9b2": {
+        "visits": 1,
+        "ns": 375
+       }
+      },
+      "edges": {
+       "start|cond:4389522b": 2,
+       "cond:4389522b|cond:de0a595d": 2,
+       "cond:de0a595d|end:6b056bb6#2": 1,
+       "cond:de0a595d|end:06d3d9b2": 1
+      },
+      "exits": {
+       "end:6b056bb6#2|return|": 1,
+       "end:06d3d9b2|return|": 1
+      },
+      "first_path": [
+       "start",
+       "cond:4389522b",
+       "cond:de0a595d",
+       "end:6b056bb6#2"
+      ],
+      "off_graph": 0,
+      "has_time": true
+     }
+    }
+   }
+  ],
+  "shapes": {
+   "wf.py::W.run": {
+    "shape": "ea6f5ef3708da0d5d1bcf74e5bbf1c686011cb6a",
+    "dups": [
+     "end:6b056bb6"
+    ]
+   }
+  },
+  "function_dups": []
+ },
+ "expect": {
+  "g1|tests/test_w.py::test_w": {
+   "unmatched": 0,
+   "placed": {
+    "wf.py::W.run@6": {
+     "cond:4389522b": "n2",
+     "cond:de0a595d": "n4",
+     "end:06d3d9b2": "n6",
+     "end:6b056bb6#2": "n5",
+     "start": "n1"
+    }
+   }
+  },
+  "g2|tests/test_w.py::test_w": {
+   "unmatched": 0,
+   "placed": {
+    "wf.py::W.run@10": {
+     "cond:4389522b": "n2",
+     "cond:de0a595d": "n4",
+     "end:06d3d9b2": "n6",
+     "end:6b056bb6#2": "n5",
+     "start": "n1"
+    }
+   }
+  }
+ }
+}
